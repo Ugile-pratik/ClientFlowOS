@@ -1,0 +1,53 @@
+# IDE and OS
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+clientflow_mobile/build/
+clientflow_mobile/.dart_tool/
+clientflow_mobile/.packages
+clientflow_mobile/.flutter-plugins
+clientflow_mobile/.flutter-plugins-dependencies
+
+# Java / Maven (Spring Boot)
+target/
+*.class
+*.jar
+*.war
+*.ear
+clientflow_backend/target/
+.mvn/wrapper/maven-wrapper.jar
+.metadata/
+bin/
+tmp/
+.classpath
+.project
+.settings/
+*.spring-boot-devtools-restart.trigger
+
+# Python / FastAPI
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+clientflow_ai/__pycache__/
+clientflow_ai/.venv/
+clientflow_ai/venv/
+clientflow_ai/env/
+clientflow_ai/.env
