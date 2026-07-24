@@ -23,8 +23,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Inputs
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('pratik@gmail.com');
+  const [password, setPassword] = useState('1234');
   const [rememberMe, setRememberMe] = useState(false);
 
   // States
