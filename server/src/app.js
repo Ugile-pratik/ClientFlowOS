@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
@@ -13,5 +14,8 @@ app.use(express.json());
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'ClientFlow API is running.' });
 });
+
+// Auth Routes
+app.use('/api/auth', authRoutes);
 
 module.exports = app;
