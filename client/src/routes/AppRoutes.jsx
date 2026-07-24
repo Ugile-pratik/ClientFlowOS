@@ -33,7 +33,7 @@ const PublicRoute = ({ children }) => {
   return !isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
-const DashboardPlaceholder = () => {
+const HelloPage = () => {
   const { user, logout } = useAuth();
   const { mode, toggleTheme } = useCustomTheme();
 
@@ -48,24 +48,12 @@ const DashboardPlaceholder = () => {
           {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
         </IconButton>
         
-        <Typography variant="h4" color="primary" gutterBottom sx={{ fontWeight: 700 }}>
-          ClientFlow
+        <Typography variant="h3" color="primary" gutterBottom sx={{ fontWeight: 800 }}>
+          Hello, {user?.fullName || 'Pratik'}!
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-          AI-Powered Business Management Platform for Freelancers
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Welcome to ClientFlow. You have successfully authenticated.
         </Typography>
-        
-        <Box sx={{ my: 4, p: 2, bgcolor: mode === 'dark' ? 'slate.800' : 'grey.100', borderRadius: 2, textAlign: 'left', border: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Log In Session Details:</strong>
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            Name: <strong>{user?.fullName}</strong>
-          </Typography>
-          <Typography variant="body1">
-            Email: <strong>{user?.email}</strong>
-          </Typography>
-        </Box>
         
         <Button variant="contained" color="error" fullWidth size="large" onClick={logout}>
           Sign Out
@@ -122,7 +110,7 @@ const AppRoutes = () => {
         path="/"
         element={
           <PrivateRoute>
-            <DashboardPlaceholder />
+            <HelloPage />
           </PrivateRoute>
         }
       />
