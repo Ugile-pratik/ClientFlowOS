@@ -53,6 +53,18 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      // Restore mock session immediately without requesting backend
+      if (token === 'mock-jwt-token-for-local-testing') {
+        setUser({
+          id: 999,
+          fullName: 'Pratik',
+          email: 'pratik@gmail.com',
+          createdAt: new Date().toISOString()
+        });
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await axios.get('/api/auth/me');
         setUser(response.data.user);
@@ -70,6 +82,21 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
+
+    // Mock Login Bypass for Local Frontend Testing
+    if (email === 'pratik@gmail.com' && password === '1234') {
+      const mockUser = {
+        id: 999,
+        fullName: 'Pratik',
+        email: 'pratik@gmail.com',
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem('clientflow-token', 'mock-jwt-token-for-local-testing');
+      setUser(mockUser);
+      setLoading(false);
+      return { success: true, message: 'Login successful (Mock Mode)!' };
+    }
+
     try {
       const response = await axios.post('/api/auth/login', { email, password });
       const { token, user: loggedUser } = response.data;
