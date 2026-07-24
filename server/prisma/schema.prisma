@@ -1,0 +1,76 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  clients   Client[]
+}
+
+model Client {
+  id          Int          @id @default(autoincrement())
+  userId      Int
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  phone       String?
+  notes       String?      @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  projects    Project[]
+  aiInsights  AI_Insight[]
+}
+
+model Project {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title     String
+  budget    Float
+  dueDate   DateTime
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  invoices  Invoice[]
+}
+
+model Invoice {
+  id            Int      @id @default(autoincrement())
+  projectId     Int
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  invoiceNumber String   @unique
+  amount        Float
+  dueDate       DateTime
+  status        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  payments      Payment[]
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  invoiceId     Int
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amountPaid    Float
+  paymentDate   DateTime @default(now())
+  paymentMethod String
+}
+
+model AI_Insight {
+  id          Int      @id @default(autoincrement())
+  clientId    Int
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  insightType String
+  message     String   @db.Text
+  createdAt   DateTime @default(now())
+}
