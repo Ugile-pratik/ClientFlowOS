@@ -25,7 +25,7 @@ const register = async (req, res) => {
         fullName,
         email,
         password: hashedPassword,
-        isVerified: false,
+        isVerified: true, // Set to true to bypass email verification for a simple signup/signin flow
         verificationToken,
         verificationTokenExpiry,
       },

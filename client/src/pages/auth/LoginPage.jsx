@@ -23,8 +23,8 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Inputs
-  const [email, setEmail] = useState('pratik@gmail.com');
-  const [password, setPassword] = useState('1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
   // States
@@ -90,7 +90,8 @@ const LoginPage = () => {
         )}
 
         <TextField
-          label="Email Address"
+          label="Enter your email"
+          placeholder="Enter your email"
           type="email"
           variant="outlined"
           fullWidth
@@ -101,7 +102,8 @@ const LoginPage = () => {
         />
 
         <TextField
-          label="Password"
+          label="Enter your password"
+          placeholder="Enter your password"
           type={showPassword ? 'text' : 'password'}
           variant="outlined"
           fullWidth
