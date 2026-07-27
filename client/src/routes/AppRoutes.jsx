@@ -1,15 +1,14 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
-import { Box, Button, Typography, Container, Card, CircularProgress, IconButton } from '@mui/material';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import { useCustomTheme } from '../context/ThemeContext';
+import DashboardPage from '../pages/dashboard/DashboardPage';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import { Box, Typography, Card, CircularProgress, Button } from '@mui/material';
 
 const FullScreenLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
@@ -22,7 +21,11 @@ const PrivateRoute = ({ children }) => {
 
   if (loading) return <FullScreenLoader />;
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return isAuthenticated ? (
+    <DashboardLayout>{children}</DashboardLayout>
+  ) : (
+    <Navigate to="/login" replace />
+  );
 };
 
 const PublicRoute = ({ children }) => {
@@ -33,35 +36,21 @@ const PublicRoute = ({ children }) => {
   return !isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
-const HelloPage = () => {
-  const { user, logout } = useAuth();
-  const { mode, toggleTheme } = useCustomTheme();
-
-  return (
-    <Container maxWidth="sm" sx={{ mt: 8 }}>
-      <Card sx={{ p: 4, textAlign: 'center', position: 'relative' }}>
-        <IconButton 
-          onClick={toggleTheme} 
-          sx={{ position: 'absolute', top: 16, right: 16 }}
-          color="inherit"
-        >
-          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
-        
-        <Typography variant="h3" color="primary" gutterBottom sx={{ fontWeight: 800 }}>
-          Hello, {user?.fullName || 'Pratik'}!
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-          Welcome to ClientFlow. You have successfully authenticated.
-        </Typography>
-        
-        <Button variant="contained" color="error" fullWidth size="large" onClick={logout}>
-          Sign Out
-        </Button>
-      </Card>
-    </Container>
-  );
-};
+const PlaceholderPage = ({ title }) => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <Card sx={{ p: 5, maxWidth: 500, width: '100%', textAlign: 'center', border: '1px dashed', borderColor: 'divider' }}>
+      <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 800 }}>
+        {title} Module
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+        The {title.toLowerCase()} system is currently under development. Stay tuned for updates!
+      </Typography>
+      <Button variant="contained" component={Link} to="/" size="medium">
+        Back to Dashboard
+      </Button>
+    </Card>
+  </Box>
+);
 
 const AppRoutes = () => {
   return (
@@ -106,14 +95,65 @@ const AppRoutes = () => {
           </PublicRoute>
         }
       />
+      
+      {/* Protected Routes inside DashboardLayout */}
       <Route
         path="/"
         element={
           <PrivateRoute>
-            <HelloPage />
+            <DashboardPage />
           </PrivateRoute>
         }
       />
+      <Route
+        path="/clients"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="Clients" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="Projects" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/invoices"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="Invoices & Payments" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/ai-insights"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="AI Insights" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="Profile" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <PlaceholderPage title="Settings" />
+          </PrivateRoute>
+        }
+      />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

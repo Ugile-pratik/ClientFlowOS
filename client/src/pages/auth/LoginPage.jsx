@@ -45,21 +45,26 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setValidationError('');
+    console.log('[Login] handleLogin triggered', { email, rememberMe });
 
     // Field check
     if (!email.trim() || !password) {
       setValidationError('Please fill in all fields.');
+      console.log('[Login] Validation failed: empty fields');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setValidationError('Please enter a valid email address.');
+      console.log('[Login] Validation failed: invalid email format');
       return;
     }
 
     setSubmitting(true);
     try {
+      console.log('[Login] Calling login function...');
       const response = await login(email, password);
+      console.log('[Login] Login function completed successfully', response);
       
       // Save or clear email in local storage
       if (rememberMe) {
@@ -75,7 +80,10 @@ const LoginPage = () => {
         navigate('/');
       }, 1000);
     } catch (err) {
-      setValidationError(err.message || 'Invalid email or password.');
+      console.error('[Login] Login function threw error:', err);
+      const displayMsg = err.message || 'Invalid email or password.';
+      setValidationError(displayMsg);
+      console.log('[Login] validationError set to:', displayMsg);
       setSubmitting(false);
     }
   };

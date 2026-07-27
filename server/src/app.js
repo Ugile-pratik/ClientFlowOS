@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 dotenv.config();
 
@@ -17,5 +18,8 @@ app.get('/api/health', (req, res) => {
 
 // Auth Routes
 app.use('/api/auth', authRoutes);
+
+// Dashboard Routes
+app.use('/api/dashboard', dashboardRoutes);
 
 module.exports = app;

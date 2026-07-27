@@ -80,7 +80,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    setLoading(true);
     setError(null);
 
     // Mock Login Bypass for Local Frontend Testing
@@ -93,20 +92,26 @@ export const AuthProvider = ({ children }) => {
       };
       localStorage.setItem('clientflow-token', 'mock-jwt-token-for-local-testing');
       setUser(mockUser);
-      setLoading(false);
       return { success: true, message: 'Login successful (Mock Mode)!' };
     }
 
     try {
+      console.log('[AuthContext] Sending POST to /api/auth/login with email:', email);
       const response = await axios.post('/api/auth/login', { email, password });
+      console.log('[AuthContext] Received login response:', response.data);
       const { token, user: loggedUser } = response.data;
 
       localStorage.setItem('clientflow-token', token);
       setUser(loggedUser);
-      setLoading(false);
       return { success: true, message: response.data.message };
     } catch (err) {
-      setLoading(false);
+      console.error('[AuthContext] Axios login request failed:', err);
+      if (err.response) {
+        console.error('[AuthContext] Error response status:', err.response.status);
+        console.error('[AuthContext] Error response data:', err.response.data);
+      } else {
+        console.error('[AuthContext] Network or CORS error (no response received)');
+      }
       const errMsg = err.response?.data?.error || 'An error occurred during login.';
       setError(errMsg);
       throw new Error(errMsg);
@@ -114,14 +119,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (fullName, email, password) => {
-    setLoading(true);
     setError(null);
     try {
       const response = await axios.post('/api/auth/register', { fullName, email, password });
-      setLoading(false);
       return { success: true, message: response.data.message };
     } catch (err) {
-      setLoading(false);
       const errMsg = err.response?.data?.error || 'An error occurred during registration.';
       setError(errMsg);
       throw new Error(errMsg);
@@ -129,14 +131,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyEmail = async (token) => {
-    setLoading(true);
     setError(null);
     try {
       const response = await axios.post('/api/auth/verify-email', { token });
-      setLoading(false);
       return { success: true, message: response.data.message };
     } catch (err) {
-      setLoading(false);
       const errMsg = err.response?.data?.error || 'Failed to verify email.';
       setError(errMsg);
       throw new Error(errMsg);
@@ -144,14 +143,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const forgotPassword = async (email) => {
-    setLoading(true);
     setError(null);
     try {
       const response = await axios.post('/api/auth/forgot-password', { email });
-      setLoading(false);
       return { success: true, message: response.data.message };
     } catch (err) {
-      setLoading(false);
       const errMsg = err.response?.data?.error || 'Failed to send password reset request.';
       setError(errMsg);
       throw new Error(errMsg);
@@ -159,14 +155,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const resetPassword = async (token, password) => {
-    setLoading(true);
     setError(null);
     try {
       const response = await axios.post('/api/auth/reset-password', { token, password });
-      setLoading(false);
       return { success: true, message: response.data.message };
     } catch (err) {
-      setLoading(false);
       const errMsg = err.response?.data?.error || 'Failed to reset password.';
       setError(errMsg);
       throw new Error(errMsg);
