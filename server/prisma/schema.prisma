@@ -26,14 +26,25 @@ model Client {
   id          Int          @id @default(autoincrement())
   userId      Int
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     String?
   name        String
   email       String
   phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+  gstNumber   String?
   notes       String?      @db.Text
+  status      String       @default("Lead")
+  tags        Json?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   projects    Project[]
   aiInsights  AI_Insight[]
+
+  @@unique([userId, email])
 }
 
 model Project {

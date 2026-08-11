@@ -299,30 +299,7 @@ const DashboardLayout = ({ children }) => {
                 <MenuIcon />
               </IconButton>
 
-              {/* Search Bar */}
-              <Box
-                sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  alignItems: 'center',
-                  bgcolor: mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                  px: 2,
-                  py: 0.6,
-                  borderRadius: 2.5,
-                  width: 260,
-                  transition: 'all 0.2s',
-                  '&:focus-within': {
-                    bgcolor: mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
-                    boxShadow: `0 0 0 1px ${theme.palette.primary.main}`,
-                  }
-                }}
-              >
-                <SearchIcon sx={{ color: 'text.secondary', mr: 1, fontSize: '1.2rem' }} />
-                <InputBase
-                  placeholder="Search (Ctrl + K)"
-                  sx={{ fontSize: '0.875rem', width: '100%', color: 'text.primary' }}
-                  inputProps={{ 'aria-label': 'search' }}
-                />
-              </Box>
+
             </Box>
 
             {/* Right side navbar: Theme, Notification, User Profile */}

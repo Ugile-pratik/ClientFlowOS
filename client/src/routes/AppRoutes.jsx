@@ -8,6 +8,9 @@ import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import DashboardLayout from '../components/layout/DashboardLayout';
+import ClientListPage from '../pages/clients/ClientListPage';
+import ClientFormPage from '../pages/clients/ClientFormPage';
+import ClientProfilePage from '../pages/clients/ClientProfilePage';
 import { Box, Typography, Card, CircularProgress, Button } from '@mui/material';
 
 const FullScreenLoader = () => (
@@ -109,7 +112,31 @@ const AppRoutes = () => {
         path="/clients"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="Clients" />
+            <ClientListPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/clients/new"
+        element={
+          <PrivateRoute>
+            <ClientFormPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/clients/:id"
+        element={
+          <PrivateRoute>
+            <ClientProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/clients/:id/edit"
+        element={
+          <PrivateRoute>
+            <ClientFormPage isEdit={true} />
           </PrivateRoute>
         }
       />

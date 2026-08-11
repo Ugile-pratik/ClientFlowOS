@@ -127,7 +127,7 @@ const DashboardPage = () => {
 
   // Speed Dial Quick Actions
   const quickActions = [
-    { icon: <AddClientIcon />, name: 'Add Client', action: () => showSnackbar('Add Client module coming soon!', 'info') },
+    { icon: <AddClientIcon />, name: 'Add Client', action: () => navigate('/clients/new') },
     { icon: <AddProjectIcon />, name: 'Create Project', action: () => showSnackbar('Create Project module coming soon!', 'info') },
     { icon: <AddInvoiceIcon />, name: 'Generate Invoice', action: () => showSnackbar('Generate Invoice module coming soon!', 'info') },
     { icon: <RecordPaymentIcon />, name: 'Record Payment', action: () => showSnackbar('Record Payment module coming soon!', 'info') },
