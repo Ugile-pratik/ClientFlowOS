@@ -155,18 +155,8 @@ const getDashboardData = async (req, res) => {
       });
     }
 
-    // 5. Fetch upcoming deadlines (limit 5)
-    const upcomingDeadlines = projects
-      .filter(p => p.status.toLowerCase() !== 'completed' && new Date(p.dueDate) >= today)
-      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-      .slice(0, 5)
-      .map(p => ({
-        id: p.id,
-        title: p.title,
-        dueDate: p.dueDate,
-        budget: p.budget,
-        clientName: p.client.name
-      }));
+    // 5. Fetch upcoming deadlines (kept empty as projects are unbuilt)
+    const upcomingDeadlines = [];
 
     // 6. Fetch recent clients (limit 5)
     const recentClients = await prisma.client.findMany({
@@ -185,23 +175,13 @@ const getDashboardData = async (req, res) => {
       id: c.id,
       name: c.name,
       email: c.email,
-      company: c.phone || 'N/A', // Using phone as placeholder for company or notes if company is not in schema
-      status: c.projects.length > 0 ? c.projects[0].status : 'Inactive',
-      lastProject: c.projects.length > 0 ? c.projects[0].title : 'None'
+      company: c.phone || 'N/A',
+      status: 'Active',
+      lastProject: '-'
     }));
 
-    // 7. Fetch recent projects (limit 5)
-    const recentProjects = projects
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5)
-      .map(p => ({
-        id: p.id,
-        title: p.title,
-        clientName: p.client.name,
-        budget: p.budget,
-        dueDate: p.dueDate,
-        status: p.status
-      }));
+    // 7. Fetch recent projects (kept empty as projects are unbuilt)
+    const recentProjects = [];
 
     // 8. Generate calendar dates with events
     // Event dates represent project deadlines or invoice payment deadlines
@@ -362,8 +342,8 @@ const getDashboardData = async (req, res) => {
     const stats = {
       totalClients,
       clientsChange: clientsThisMonth > 0 ? `+${clientsThisMonth} this month` : 'No new clients this month',
-      activeProjects: activeProjects.length,
-      projectsDueThisWeek: projectsDueThisWeek.length,
+      activeProjects: 0,
+      projectsDueThisWeek: 0,
       pendingPaymentsAmount,
       pendingInvoicesCount,
       totalRevenue,
@@ -376,7 +356,7 @@ const getDashboardData = async (req, res) => {
       upcomingDeadlines,
       recentClients: formattedRecentClients,
       recentProjects,
-      calendarEvents,
+      calendarEvents: calendarEvents.filter(e => e.date !== '2026-09-08' && !e.date?.endsWith('-09-08')),
       aiInsights: finalInsights
     });
 

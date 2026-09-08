@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
@@ -11,7 +11,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import ClientListPage from '../pages/clients/ClientListPage';
 import ClientFormPage from '../pages/clients/ClientFormPage';
 import ClientProfilePage from '../pages/clients/ClientProfilePage';
-import { Box, Typography, Card, CircularProgress, Button } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 
 const FullScreenLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
@@ -39,20 +39,8 @@ const PublicRoute = ({ children }) => {
   return !isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
-const PlaceholderPage = ({ title }) => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-    <Card sx={{ p: 5, maxWidth: 500, width: '100%', textAlign: 'center', border: '1px dashed', borderColor: 'divider' }}>
-      <Typography variant="h5" color="primary" gutterBottom sx={{ fontWeight: 800 }}>
-        {title} Module
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        The {title.toLowerCase()} system is currently under development. Stay tuned for updates!
-      </Typography>
-      <Button variant="contained" component={Link} to="/" size="medium">
-        Back to Dashboard
-      </Button>
-    </Card>
-  </Box>
+const PlaceholderPage = () => (
+  <Box sx={{ minHeight: '60vh' }} />
 );
 
 const AppRoutes = () => {
@@ -144,7 +132,7 @@ const AppRoutes = () => {
         path="/projects"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="Projects" />
+            <PlaceholderPage />
           </PrivateRoute>
         }
       />
@@ -152,7 +140,7 @@ const AppRoutes = () => {
         path="/invoices"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="Invoices & Payments" />
+            <PlaceholderPage />
           </PrivateRoute>
         }
       />
@@ -160,7 +148,7 @@ const AppRoutes = () => {
         path="/ai-insights"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="AI Insights" />
+            <PlaceholderPage />
           </PrivateRoute>
         }
       />
@@ -168,7 +156,7 @@ const AppRoutes = () => {
         path="/profile"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="Profile" />
+            <PlaceholderPage />
           </PrivateRoute>
         }
       />
@@ -176,7 +164,7 @@ const AppRoutes = () => {
         path="/settings"
         element={
           <PrivateRoute>
-            <PlaceholderPage title="Settings" />
+            <PlaceholderPage />
           </PrivateRoute>
         }
       />

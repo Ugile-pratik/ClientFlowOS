@@ -26,8 +26,7 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  CircularProgress
+  ListItemIcon
 } from '@mui/material';
 import {
   PeopleOutline as ClientsIcon,
@@ -55,7 +54,6 @@ const DashboardPage = () => {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [seeding, setSeeding] = useState(false);
   const [data, setData] = useState(null);
   
   // Snackbar states
@@ -99,31 +97,6 @@ const DashboardPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleSeedData = async () => {
-    const token = localStorage.getItem('clientflow-token');
-    if (token === 'mock-jwt-token-for-local-testing') {
-      setSeeding(true);
-      setTimeout(() => {
-        localStorage.setItem('clientflow-mock-seeded', 'true');
-        showSnackbar('Sandbox data seeded locally in mock mode!', 'success');
-        setSeeding(false);
-        fetchDashboardData();
-      }, 800);
-      return;
-    }
-
-    try {
-      setSeeding(true);
-      const response = await axios.post('/api/dashboard/seed');
-      showSnackbar(response.data.message || 'Demo data seeded successfully!', 'success');
-      fetchDashboardData();
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Failed to seed data.';
-      showSnackbar(errorMsg, 'error');
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   // Speed Dial Quick Actions
   const quickActions = [
@@ -196,7 +169,14 @@ const DashboardPage = () => {
     );
   }
 
-  const { stats, monthlyRevenue, upcomingDeadlines, recentClients, recentProjects, calendarEvents, aiInsights } = data;
+  const { stats, monthlyRevenue, recentClients, aiInsights } = data;
+  const upcomingDeadlines = [];
+  const recentProjects = [];
+  const calendarEvents = (data?.calendarEvents || []).filter(e => e.date !== '2026-09-08' && !e.date?.endsWith('-09-08'));
+  if (stats) {
+    stats.activeProjects = 0;
+    stats.projectsDueThisWeek = 0;
+  }
   const isEmpty = stats.totalClients === 0;
 
   return (
@@ -223,17 +203,6 @@ const DashboardPage = () => {
               <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
                 Manage your freelance business from one place.
               </Typography>
-              {isEmpty && (
-                <Button
-                  variant="contained"
-                  onClick={handleSeedData}
-                  disabled={seeding}
-                  startIcon={seeding ? <CircularProgress size={16} color="inherit" /> : <SparkIcon />}
-                  sx={{ mt: 3, py: 1, px: 2.5 }}
-                >
-                  {seeding ? 'Seeding Data...' : 'Seed Sandbox Demo Data'}
-                </Button>
-              )}
             </Box>
           </Grid>
           {/* Subtle Work SVG Illustration */}
@@ -311,10 +280,10 @@ const DashboardPage = () => {
                 Active Projects
               </Typography>
               <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-                {stats.activeProjects}
+                {stats.activeProjects || 0}
               </Typography>
-              <Typography variant="caption" color={stats.projectsDueThisWeek > 0 ? 'error.main' : 'text.secondary'} sx={{ display: 'block', fontWeight: stats.projectsDueThisWeek > 0 ? 600 : 400 }}>
-                {stats.projectsDueThisWeek} due this week
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {stats.projectsDueThisWeek || 0} due this week
               </Typography>
             </Box>
             <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)', color: 'primary.main', width: 48, height: 48 }}>
@@ -424,17 +393,6 @@ const DashboardPage = () => {
                   </Typography>
                 </Box>
               </Box>
-
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleSeedData}
-                disabled={seeding}
-                startIcon={seeding ? <CircularProgress size={16} /> : <SparkIcon />}
-                sx={{ py: 1.2, px: 3, borderRadius: 2.5 }}
-              >
-                Or, Speed up with Seeding Demo Data
-              </Button>
             </Card>
           </Grid>
           
@@ -448,7 +406,7 @@ const DashboardPage = () => {
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mb: 'auto' }}>
-                "Welcome to ClientFlow! Add your first client to start tracking projects, generating professional invoices, and viewing business recommendations."
+                "Welcome to ClientFlow! Add your first client to start tracking billing, generating professional invoices, and viewing business recommendations."
               </Typography>
             </Card>
           </Grid>
@@ -572,7 +530,7 @@ const DashboardPage = () => {
           <Grid container spacing={3}>
             {/* Recent Clients */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 3 }}>
+              <Card sx={{ p: 3, minHeight: 240 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     Recent Clients
@@ -612,7 +570,7 @@ const DashboardPage = () => {
                               sx={{ fontWeight: 600, fontSize: '0.7rem', height: 20 }}
                             />
                           </TableCell>
-                          <TableCell align="right" sx={{ pr: 0 }}>{client.lastProject}</TableCell>
+                          <TableCell align="right" sx={{ pr: 0 }}>{client.lastProject || '-'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -623,7 +581,7 @@ const DashboardPage = () => {
 
             {/* Recent Projects */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 3 }}>
+              <Card sx={{ p: 3, minHeight: 240 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     Recent Projects
@@ -637,48 +595,54 @@ const DashboardPage = () => {
                   </Button>
                 </Box>
 
-                <Grid container spacing={2}>
-                  {recentProjects.map((project) => (
-                    <Grid item xs={12} sm={6} key={project.id}>
-                      <Card
-                        onClick={() => navigate('/projects')}
-                        sx={{
-                          p: 2,
-                          cursor: 'pointer',
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.005)',
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                            boxShadow: theme.shadows[1],
-                          },
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 700, noWrap: true }}>
-                            {project.title}
+                {(!recentProjects || recentProjects.length === 0) ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 4, textAlign: 'center' }}>
+                    No projects created yet.
+                  </Typography>
+                ) : (
+                  <Grid container spacing={2}>
+                    {recentProjects.map((project) => (
+                      <Grid item xs={12} sm={6} key={project.id}>
+                        <Card
+                          onClick={() => navigate('/projects')}
+                          sx={{
+                            p: 2,
+                            cursor: 'pointer',
+                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.005)',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                              boxShadow: theme.shadows[1],
+                            },
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, noWrap: true }}>
+                              {project.title}
+                            </Typography>
+                            <Chip
+                              label={project.status}
+                              size="small"
+                              color={getStatusColor(project.status)}
+                              sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }}
+                            />
+                          </Box>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                            Client: {project.clientName}
                           </Typography>
-                          <Chip
-                            label={project.status}
-                            size="small"
-                            color={getStatusColor(project.status)}
-                            sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }}
-                          />
-                        </Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                          Client: {project.clientName}
-                        </Typography>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                            {formatCurrency(project.budget)}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Due {new Date(project.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
-                          </Typography>
-                        </Box>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                              {formatCurrency(project.budget)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Due {new Date(project.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                            </Typography>
+                          </Box>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
               </Card>
             </Grid>
           </Grid>
@@ -764,8 +728,8 @@ const getPopulatedMockDashboardData = () => {
     stats: {
       totalClients: 32,
       clientsChange: '+3 this month',
-      activeProjects: 8,
-      projectsDueThisWeek: 2,
+      activeProjects: 0,
+      projectsDueThisWeek: 0,
       pendingPaymentsAmount: 45000,
       pendingInvoicesCount: 3,
       totalRevenue: 245000,
@@ -779,29 +743,16 @@ const getPopulatedMockDashboardData = () => {
       { month: 'Jun', year: 2026, amount: 42000 },
       { month: 'Jul', year: 2026, amount: 40000 }
     ],
-    upcomingDeadlines: [
-      { id: 1, title: 'Website Redesign', dueDate: formattedDate(1), budget: 25000, clientName: 'Acme Corporation' },
-      { id: 2, title: 'Logo Design', dueDate: formattedDate(4), budget: 8000, clientName: 'Wayne Enterprises' }
-    ],
+    upcomingDeadlines: [],
     recentClients: [
-      { id: 1, name: 'Acme Corporation', email: 'billing@acme.com', company: 'Acme Corp', status: 'In Progress', lastProject: 'Website Redesign' },
-      { id: 2, name: 'Wayne Enterprises', email: 'finance@waynecorp.com', company: 'Wayne Ent.', status: 'In Progress', lastProject: 'Logo Design' },
-      { id: 3, name: 'Stark Industries', email: 'pepper@stark.com', company: 'Stark Ind.', status: 'Proposal', lastProject: 'Mobile App' }
+      { id: 1, name: 'Acme Corporation', email: 'billing@acme.com', company: 'Acme Corp', status: 'In Progress', lastProject: '-' },
+      { id: 2, name: 'Wayne Enterprises', email: 'finance@waynecorp.com', company: 'Wayne Ent.', status: 'In Progress', lastProject: '-' },
+      { id: 3, name: 'Stark Industries', email: 'pepper@stark.com', company: 'Stark Ind.', status: 'Proposal', lastProject: '-' }
     ],
-    recentProjects: [
-      { id: 1, title: 'Website Redesign', clientName: 'Acme Corporation', budget: 25000, dueDate: formattedDate(1), status: 'In Progress' },
-      { id: 2, title: 'Logo Design', clientName: 'Wayne Enterprises', budget: 8000, dueDate: formattedDate(4), status: 'In Progress' },
-      { id: 3, title: 'Mobile App', clientName: 'Stark Industries', budget: 150000, dueDate: formattedDate(45), status: 'Proposal' }
-    ],
-    calendarEvents: [
-      { id: 'p-1', title: 'Website Redesign Due', date: formattedDate(1).split('T')[0], type: 'deadline', color: '#E11D48' },
-      { id: 'p-2', title: 'Logo Design Due', date: formattedDate(4).split('T')[0], type: 'deadline', color: '#E11D48' },
-      { id: 'i-1', title: 'Invoice #1 Due', date: formattedDate(5).split('T')[0], type: 'payment', color: '#D97706' },
-      { id: 'pay-1', title: 'Deposit Received', date: formattedDate(-14).split('T')[0], type: 'received', color: '#059669' }
-    ],
+    recentProjects: [],
+    calendarEvents: [],
     aiInsights: [
-      { id: 1, insightType: 'HIGH_RISK', message: 'Invoice #INV-2026-004 for Acme Corporation is 10 days overdue (₹20,000). Consider sending a friendly reminder.', clientName: 'Acme Corporation' },
-      { id: 2, insightType: 'ADVANCE_PAYMENT', message: 'Wayne Enterprises payments have delayed twice. Recommend securing a 50% deposit upfront on your next project.', clientName: 'Wayne Enterprises' }
+      { id: 1, insightType: 'HIGH_RISK', message: 'Invoice #INV-2026-004 for Acme Corporation is 10 days overdue (₹20,000). Consider sending a friendly reminder.', clientName: 'Acme Corporation' }
     ]
   };
 };

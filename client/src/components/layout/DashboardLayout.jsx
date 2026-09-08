@@ -24,6 +24,7 @@ import {
 } from '@mui/material';
 import {
   Menu as MenuIcon,
+  ChevronLeft as ChevronLeftIcon,
   Search as SearchIcon,
   NotificationsNone as NotificationsIcon,
   LightMode as LightModeIcon,
@@ -52,10 +53,15 @@ const DashboardLayout = ({ children }) => {
   const location = useLocation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
   const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setSidebarOpen(!sidebarOpen);
+    }
   };
 
   const handleProfileMenuOpen = (event) => {
@@ -87,33 +93,39 @@ const DashboardLayout = ({ children }) => {
       {/* Sidebar Header */}
       <Box
         sx={{
-          p: 3,
+          p: 2.5,
+          px: 3,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
+          justifyContent: 'space-between',
           borderBottom: '1px solid',
           borderColor: 'divider',
         }}
       >
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: 1.5,
-            bgcolor: 'primary.main',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 800,
-            fontSize: '1.2rem',
-          }}
-        >
-          C
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: 1.5,
+              bgcolor: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 800,
+              fontSize: '1.2rem',
+            }}
+          >
+            C
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>
+            ClientFlow
+          </Typography>
         </Box>
-        <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>
-          ClientFlow
-        </Typography>
+        <IconButton size="small" onClick={handleDrawerToggle} title="Close Sidebar">
+          <ChevronLeftIcon />
+        </IconButton>
       </Box>
 
       {/* Navigation Items */}
@@ -223,8 +235,12 @@ const DashboardLayout = ({ children }) => {
       {/* Sidebar Drawer Container */}
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
-        aria-label="mailbox folders"
+        sx={{
+          width: { md: sidebarOpen ? drawerWidth : 0 },
+          flexShrink: { md: 0 },
+          transition: 'width 0.25s ease-in-out',
+        }}
+        aria-label="sidebar"
       >
         {/* Mobile Drawer */}
         <Drawer
@@ -246,9 +262,10 @@ const DashboardLayout = ({ children }) => {
           {drawerContent}
         </Drawer>
 
-        {/* Desktop Permanent Drawer */}
+        {/* Desktop Collapsible Drawer */}
         <Drawer
-          variant="permanent"
+          variant="persistent"
+          open={sidebarOpen}
           sx={{
             display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
@@ -257,9 +274,9 @@ const DashboardLayout = ({ children }) => {
               bgcolor: 'background.paper',
               borderRight: '1px solid',
               borderColor: 'divider',
+              transition: 'transform 0.25s ease-in-out, width 0.25s ease-in-out',
             },
           }}
-          open
         >
           {drawerContent}
         </Drawer>
@@ -269,10 +286,11 @@ const DashboardLayout = ({ children }) => {
       <Box
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          width: { md: sidebarOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          transition: 'width 0.25s ease-in-out, margin-left 0.25s ease-in-out',
         }}
       >
         {/* Top Header/Navbar */}
@@ -287,19 +305,20 @@ const DashboardLayout = ({ children }) => {
           }}
         >
           <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
-            {/* Left side navbar: Search and Toggle */}
+            {/* Left side navbar: Toggle Button (Only shown when sidebar is closed) */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 1, display: { md: 'none' } }}
-              >
-                <MenuIcon />
-              </IconButton>
-
-
+              {((isMobile && !mobileOpen) || (!isMobile && !sidebarOpen)) && (
+                <IconButton
+                  color="inherit"
+                  aria-label="open sidebar"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                  sx={{ mr: 1 }}
+                  title="Open Sidebar"
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
             </Box>
 
             {/* Right side navbar: Theme, Notification, User Profile */}
