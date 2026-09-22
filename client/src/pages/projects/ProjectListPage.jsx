@@ -46,7 +46,7 @@ import {
   TableRows as TableViewIcon,
   FolderSpecial as ProjectIcon,
   Person as ClientIcon,
-  AttachMoney as MoneyIcon,
+  CurrencyRupee as MoneyIcon,
   CalendarToday as DateIcon,
   CheckCircle as CheckIcon,
   HourglassEmpty as PendingIcon,
@@ -467,9 +467,11 @@ const ProjectListPage = () => {
           {projects.map((project) => (
             <Grid item xs={12} sm={6} md={4} key={project.id}>
               <Card
+                onClick={() => navigate(`/projects/${project.id}`)}
                 sx={{
                   borderRadius: 3,
                   boxShadow: '0 3px 12px rgba(0,0,0,0.05)',
+                  cursor: 'pointer',
                   transition: 'transform 0.2s, box-shadow 0.2s',
                   '&:hover': {
                     transform: 'translateY(-4px)',
@@ -489,7 +491,7 @@ const ProjectListPage = () => {
                       size="small"
                       sx={{ fontWeight: 700, borderRadius: 1.5 }}
                     />
-                    <Box>
+                    <Box onClick={(e) => e.stopPropagation()}>
                       <IconButton size="small" onClick={(e) => handleOpenEditDialog(project, e)} color="primary">
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -500,7 +502,7 @@ const ProjectListPage = () => {
                   </Box>
 
                   {/* Title */}
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary', '&:hover': { color: 'primary.main' } }}>
                     {project.title}
                   </Typography>
 
@@ -556,7 +558,7 @@ const ProjectListPage = () => {
             </TableHead>
             <TableBody>
               {projects.map((project) => (
-                <TableRow key={project.id} hover>
+                <TableRow key={project.id} hover onClick={() => navigate(`/projects/${project.id}`)} sx={{ cursor: 'pointer' }}>
                   <TableCell sx={{ fontWeight: 600 }}>{project.title}</TableCell>
                   <TableCell>
                     {project.client?.name || 'Unassigned'}
@@ -578,7 +580,7 @@ const ProjectListPage = () => {
                     {formatCurrency(project.budget)}
                   </TableCell>
                   <TableCell>{formatDate(project.dueDate)}</TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                     <IconButton size="small" onClick={(e) => handleOpenEditDialog(project, e)} color="primary">
                       <EditIcon fontSize="small" />
                     </IconButton>

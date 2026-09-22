@@ -32,7 +32,7 @@ import {
   PeopleOutline as ClientsIcon,
   WorkOutline as ProjectsIcon,
   ReceiptOutlined as InvoicesIcon,
-  AttachMoney as RevenueIcon,
+  CurrencyRupee as RevenueIcon,
   PersonAdd as AddClientIcon,
   CreateNewFolder as AddProjectIcon,
   PostAdd as AddInvoiceIcon,
