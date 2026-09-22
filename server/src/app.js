@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const clientRoutes = require('./routes/client.routes');
+const projectRoutes = require('./routes/project.routes');
 
 dotenv.config();
 
@@ -25,5 +26,8 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Client Routes
 app.use('/api/clients', clientRoutes);
+
+// Project Routes
+app.use('/api/projects', projectRoutes);
 
 module.exports = app;

@@ -11,6 +11,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import ClientListPage from '../pages/clients/ClientListPage';
 import ClientFormPage from '../pages/clients/ClientFormPage';
 import ClientProfilePage from '../pages/clients/ClientProfilePage';
+import ProjectListPage from '../pages/projects/ProjectListPage';
 import { Box, CircularProgress } from '@mui/material';
 
 const FullScreenLoader = () => (
@@ -132,7 +133,7 @@ const AppRoutes = () => {
         path="/projects"
         element={
           <PrivateRoute>
-            <PlaceholderPage />
+            <ProjectListPage />
           </PrivateRoute>
         }
       />
