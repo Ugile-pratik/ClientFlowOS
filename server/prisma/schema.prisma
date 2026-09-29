@@ -65,9 +65,16 @@ model Invoice {
   projectId     Int
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   invoiceNumber String   @unique
-  amount        Float
+  invoiceDate   DateTime @default(now())
   dueDate       DateTime
-  status        String
+  items         Json?
+  subtotal      Float?   @default(0)
+  taxRate       Float?   @default(0)
+  taxAmount     Float?   @default(0)
+  discount      Float?   @default(0)
+  amount        Float
+  notes         String?  @db.Text
+  status        String   @default("Pending")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   payments      Payment[]
@@ -80,6 +87,8 @@ model Payment {
   amountPaid    Float
   paymentDate   DateTime @default(now())
   paymentMethod String
+  referenceId   String?
+  notes         String?
 }
 
 model AI_Insight {

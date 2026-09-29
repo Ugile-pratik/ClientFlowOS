@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const clientRoutes = require('./routes/client.routes');
 const projectRoutes = require('./routes/project.routes');
+const invoiceRoutes = require('./routes/invoice.routes');
 
 dotenv.config();
 
@@ -29,5 +30,8 @@ app.use('/api/clients', clientRoutes);
 
 // Project Routes
 app.use('/api/projects', projectRoutes);
+
+// Invoice Routes
+app.use('/api/invoices', invoiceRoutes);
 
 module.exports = app;

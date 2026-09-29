@@ -13,6 +13,8 @@ import ClientFormPage from '../pages/clients/ClientFormPage';
 import ClientProfilePage from '../pages/clients/ClientProfilePage';
 import ProjectListPage from '../pages/projects/ProjectListPage';
 import ProjectDetailsPage from '../pages/projects/ProjectDetailsPage';
+import InvoiceListPage from '../pages/invoices/InvoiceListPage';
+import InvoiceDetailsPage from '../pages/invoices/InvoiceDetailsPage';
 import { Box, CircularProgress } from '@mui/material';
 
 const FullScreenLoader = () => (
@@ -150,7 +152,15 @@ const AppRoutes = () => {
         path="/invoices"
         element={
           <PrivateRoute>
-            <PlaceholderPage />
+            <InvoiceListPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/invoices/:id"
+        element={
+          <PrivateRoute>
+            <InvoiceDetailsPage />
           </PrivateRoute>
         }
       />
