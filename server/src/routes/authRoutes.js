@@ -6,6 +6,7 @@ const {
   forgotPassword,
   resetPassword,
   getMe,
+  changePassword,
 } = require('../controllers/authController');
 const { validateRegister, validateLogin } = require('../middleware/validationMiddleware');
 const authMiddleware = require('../middleware/authMiddleware');
@@ -18,5 +19,6 @@ router.post('/verify-email', verifyEmail);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.get('/me', authMiddleware, getMe);
+router.post('/change-password', authMiddleware, changePassword);
 
 module.exports = router;

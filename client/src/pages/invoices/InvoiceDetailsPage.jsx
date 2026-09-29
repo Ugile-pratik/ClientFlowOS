@@ -56,6 +56,9 @@ import {
 } from '@mui/icons-material';
 import { getInvoiceById, updateInvoice, deleteInvoice, recordPayment } from '../../services/invoiceService';
 import { getProjects } from '../../services/projectService';
+import { getProfile } from '../../services/profileService';
+import { generateUpiUri } from '../../utils/upiQr';
+import { QRCodeSVG } from 'qrcode.react';
 
 const STATUS_COLORS = {
   'Draft': 'default',
@@ -75,6 +78,7 @@ const InvoiceDetailsPage = () => {
   // State
   const [invoice, setInvoice] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Edit Dialog State
@@ -122,12 +126,14 @@ const InvoiceDetailsPage = () => {
   const fetchInvoiceDetails = async () => {
     try {
       setLoading(true);
-      const [invoiceData, projectsData] = await Promise.all([
+      const [invoiceData, projectsData, profileData] = await Promise.all([
         getInvoiceById(id),
-        getProjects()
+        getProjects(),
+        getProfile().catch(() => null)
       ]);
       setInvoice(invoiceData);
       setProjects(projectsData || []);
+      setProfile(profileData || null);
     } catch (err) {
       console.error('Error fetching invoice details:', err);
       showSnackbar(err.message || 'Failed to load invoice details.', 'error');
@@ -632,6 +638,61 @@ const InvoiceDetailsPage = () => {
           )}
         </Box>
 
+        {/* Payment Information & UPI QR Code Section */}
+        {(profile?.upiId || profile?.paymentQrUrl || profile?.paymentInstructions) && (
+          <Paper variant="outlined" sx={{ p: 2.5, mt: 4, borderRadius: 2, bgcolor: '#f8fafc' }}>
+            <Grid container spacing={3} alignItems="center">
+              <Grid item xs={12} sm={profile?.paymentQrUrl || profile?.upiId ? 8 : 12}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PaymentIcon fontSize="small" /> Payment Details
+                </Typography>
+
+                {profile?.upiId && (
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    UPI ID (VPA): <Box component="span" sx={{ fontFamily: 'monospace', color: 'primary.dark', bgcolor: '#e2e8f0', px: 1, py: 0.25, borderRadius: 1 }}>{profile.upiId}</Box>
+                  </Typography>
+                )}
+
+                {profile?.paymentInstructions && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, whitespace: 'pre-line' }}>
+                    {profile.paymentInstructions}
+                  </Typography>
+                )}
+              </Grid>
+
+              {(profile?.paymentQrUrl || profile?.upiId) && (
+                <Grid item xs={12} sm={4} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                  <Box sx={{ display: 'inline-block', textAlign: 'center', p: 1.5, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2 }}>
+                    {profile.paymentQrUrl ? (
+                      <Box
+                        component="img"
+                        src={profile.paymentQrUrl}
+                        alt="Payment QR Code"
+                        sx={{ width: 130, height: 130, objectFit: 'contain' }}
+                      />
+                    ) : profile.upiId ? (
+                      <QRCodeSVG
+                        value={generateUpiUri({
+                          upiId: profile.upiId,
+                          payeeName: profile.fullName,
+                          amount: remainingBalance > 0 ? remainingBalance : invoice.amount,
+                          invoiceNumber: invoice.invoiceNumber
+                        })}
+                        size={130}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    ) : null}
+                    <Typography variant="caption" display="block" sx={{ mt: 0.5, fontWeight: 700, color: 'text.secondary' }}>
+                      Scan to Pay via UPI
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </Paper>
+        )}
+
         {/* Notes & Terms & Conditions */}
         {invoice.notes && (
           <Box sx={{ mt: 4, pt: 3, borderTop: '1px dashed', borderColor: 'divider' }}>
@@ -652,17 +713,24 @@ const InvoiceDetailsPage = () => {
           <DialogContent dividers>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               <FormControl fullWidth required>
-                <InputLabel>Project</InputLabel>
+                <InputLabel id="edit-invoice-project-select-label">Project</InputLabel>
                 <Select
-                  value={formData.projectId}
+                  labelId="edit-invoice-project-select-label"
+                  value={formData.projectId || ''}
                   label="Project"
                   onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
                 >
-                  {projects.map((proj) => (
-                    <MenuItem key={proj.id} value={proj.id}>
-                      {proj.title} ({proj.client?.name || 'Client'})
+                  {projects.length === 0 ? (
+                    <MenuItem value="" disabled>
+                      No projects found.
                     </MenuItem>
-                  ))}
+                  ) : (
+                    projects.map((proj) => (
+                      <MenuItem key={proj.id} value={proj.id}>
+                        {proj.title} ({proj.client?.name || proj.client?.company || 'Client'})
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
               </FormControl>
 

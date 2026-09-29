@@ -5,7 +5,9 @@ const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const clientRoutes = require('./routes/client.routes');
 const projectRoutes = require('./routes/project.routes');
+const path = require('path');
 const invoiceRoutes = require('./routes/invoice.routes');
+const profileRoutes = require('./routes/profile.routes');
 
 dotenv.config();
 
@@ -13,6 +15,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static uploaded files (QR images)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API healthcheck endpoint
 app.get('/api/health', (req, res) => {
@@ -33,5 +38,8 @@ app.use('/api/projects', projectRoutes);
 
 // Invoice Routes
 app.use('/api/invoices', invoiceRoutes);
+
+// Profile Routes
+app.use('/api/profile', profileRoutes);
 
 module.exports = app;

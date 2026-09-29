@@ -161,8 +161,8 @@ const updateProject = async (userId, projectId, projectData) => {
     throw error;
   }
 
-  const clientId = parseInt(projectData.clientId, 10);
-  if (clientId !== existingProject.clientId) {
+  const clientId = projectData.clientId !== undefined ? parseInt(projectData.clientId, 10) : existingProject.clientId;
+  if (!isNaN(clientId) && clientId !== existingProject.clientId) {
     const client = await prisma.client.findFirst({
       where: { id: clientId, userId },
     });
@@ -173,14 +173,21 @@ const updateProject = async (userId, projectId, projectData) => {
     }
   }
 
+  const title = projectData.title ? projectData.title.trim() : existingProject.title;
+  const budget = projectData.budget !== undefined && !isNaN(parseFloat(projectData.budget))
+    ? parseFloat(projectData.budget)
+    : existingProject.budget;
+  const dueDate = projectData.dueDate ? new Date(projectData.dueDate) : existingProject.dueDate;
+  const status = projectData.status !== undefined ? projectData.status : existingProject.status;
+
   return await prisma.project.update({
     where: { id },
     data: {
-      clientId,
-      title: projectData.title.trim(),
-      budget: parseFloat(projectData.budget),
-      dueDate: new Date(projectData.dueDate),
-      status: projectData.status,
+      clientId: !isNaN(clientId) ? clientId : existingProject.clientId,
+      title,
+      budget,
+      dueDate,
+      status,
     },
     include: {
       client: {

@@ -119,9 +119,9 @@ const updateClient = async (userId, clientId, clientData) => {
     throw error;
   }
 
-  // Check email uniqueness if email is changed
-  const email = clientData.email.trim();
-  if (email.toLowerCase() !== client.email.toLowerCase()) {
+  // Check email uniqueness if email is provided and changed
+  const email = clientData.email ? clientData.email.trim() : client.email;
+  if (email && email.toLowerCase() !== client.email.toLowerCase()) {
     const existingClient = await prisma.client.findFirst({
       where: {
         userId,
@@ -140,19 +140,19 @@ const updateClient = async (userId, clientId, clientData) => {
   return await prisma.client.update({
     where: { id },
     data: {
-      company: clientData.company,
-      name: clientData.name,
-      email,
-      phone: clientData.phone,
-      address: clientData.address,
-      city: clientData.city,
-      state: clientData.state,
-      country: clientData.country,
-      postalCode: clientData.postalCode,
-      gstNumber: clientData.gstNumber || null,
-      notes: clientData.notes || null,
-      status: clientData.status,
-      tags: clientData.tags || [],
+      company: clientData.company !== undefined ? clientData.company : client.company,
+      name: clientData.name !== undefined ? clientData.name : client.name,
+      email: email || client.email,
+      phone: clientData.phone !== undefined ? clientData.phone : client.phone,
+      address: clientData.address !== undefined ? clientData.address : client.address,
+      city: clientData.city !== undefined ? clientData.city : client.city,
+      state: clientData.state !== undefined ? clientData.state : client.state,
+      country: clientData.country !== undefined ? clientData.country : client.country,
+      postalCode: clientData.postalCode !== undefined ? clientData.postalCode : client.postalCode,
+      gstNumber: clientData.gstNumber !== undefined ? (clientData.gstNumber || null) : client.gstNumber,
+      notes: clientData.notes !== undefined ? (clientData.notes || null) : client.notes,
+      status: clientData.status !== undefined ? clientData.status : client.status,
+      tags: clientData.tags !== undefined ? clientData.tags : (client.tags || []),
     },
   });
 };

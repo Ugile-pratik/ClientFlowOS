@@ -8,18 +8,65 @@ generator client {
 }
 
 model User {
-  id                      Int       @id @default(autoincrement())
-  email                   String    @unique
-  password                String
-  fullName                String
-  isVerified              Boolean   @default(false)
-  verificationToken       String?   @db.VarChar(255)
-  verificationTokenExpiry DateTime?
-  resetPasswordToken      String?   @db.VarChar(255)
+  id                       Int       @id @default(autoincrement())
+  email                    String    @unique
+  password                 String
+  fullName                 String
+  isVerified               Boolean   @default(false)
+  verificationToken        String?   @db.VarChar(255)
+  verificationTokenExpiry  DateTime?
+  resetPasswordToken       String?   @db.VarChar(255)
   resetPasswordTokenExpiry DateTime?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  clients                 Client[]
+
+  // Professional Profile Info
+  profilePhotoUrl          String?
+  phone                    String?
+  location                 String?
+  profession               String?
+  bio                      String?   @db.Text
+  skills                   Json?
+  experienceLevel          String?
+  hourlyRate               Float?
+  website                  String?
+  linkedIn                 String?
+  github                   String?
+
+  // Business Profile Info
+  businessName             String?
+  businessType             String?
+  gstNumber                String?
+  businessAddress          String?   @db.Text
+  businessDescription      String?   @db.Text
+
+  // Payment & Invoicing Settings
+  upiId                    String?
+  paymentQrUrl             String?
+  paymentInstructions      String?   @db.Text
+  invoicePrefix            String?   @default("INV")
+  nextInvoiceNumber        Int?      @default(1)
+  defaultCurrency          String?   @default("INR")
+  defaultTaxRate           Float?    @default(0)
+  defaultPaymentTerms      String?   @default("Due within 15 days")
+  defaultNotes             String?   @db.Text
+  invoiceLogoUrl           String?
+  invoiceColor             String?   @default("#1976d2")
+  showAddressOnInvoice     Boolean?  @default(true)
+  showPhoneOnInvoice       Boolean?  @default(true)
+  showEmailOnInvoice       Boolean?  @default(true)
+  showWebsiteOnInvoice     Boolean?  @default(true)
+
+  // Security & Preferences & Notifications
+  theme                    String?   @default("system")
+  dateFormat               String?   @default("DD/MM/YYYY")
+  timeZone                 String?   @default("Asia/Kolkata")
+  notifyProjectDeadlines   Boolean?  @default(true)
+  notifyInvoiceDue         Boolean?  @default(true)
+  notifyPaymentReceived    Boolean?  @default(true)
+  notifyAiInsights         Boolean?  @default(true)
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  clients                  Client[]
 }
 
 model Client {

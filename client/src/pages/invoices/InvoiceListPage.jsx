@@ -825,17 +825,24 @@ const InvoiceListPage = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
               {/* Project & Client Selection */}
               <FormControl fullWidth required>
-                <InputLabel>Select Project</InputLabel>
+                <InputLabel id="invoice-project-select-label">Select Project</InputLabel>
                 <Select
-                  value={formData.projectId}
+                  labelId="invoice-project-select-label"
+                  value={formData.projectId || ''}
                   label="Select Project"
                   onChange={(e) => handleProjectSelect(e.target.value)}
                 >
-                  {projects.map((proj) => (
-                    <MenuItem key={proj.id} value={proj.id}>
-                      {proj.title} ({proj.client?.name || 'Client'})
+                  {projects.length === 0 ? (
+                    <MenuItem value="" disabled>
+                      No projects found. Please create a project first.
                     </MenuItem>
-                  ))}
+                  ) : (
+                    projects.map((proj) => (
+                      <MenuItem key={proj.id} value={proj.id}>
+                        {proj.title} ({proj.client?.name || proj.client?.company || 'Client'})
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
               </FormControl>
 
