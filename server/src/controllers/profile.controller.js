@@ -15,7 +15,8 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    const uniqueName = `qr-${req.user.id}-${Date.now()}${ext}`;
+    const prefix = file.fieldname || 'upload';
+    const uniqueName = `${prefix}-${req.user.id}-${Date.now()}${ext}`;
     cb(null, uniqueName);
   },
 });
@@ -77,6 +78,52 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const uploadAvatarImage = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Please select an image file to upload.' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const updated = await profileService.updateProfile(userId, {
+      profilePhotoUrl: fileUrl,
+    });
+
+    res.status(200).json({
+      message: 'Profile photo uploaded successfully.',
+      profilePhotoUrl: fileUrl,
+      user: updated,
+    });
+  } catch (error) {
+    console.error('Upload Avatar Image Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload profile photo.' });
+  }
+};
+
+const uploadBannerImage = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Please select an image file to upload.' });
+    }
+
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const updated = await profileService.updateProfile(userId, {
+      coverBannerUrl: fileUrl,
+    });
+
+    res.status(200).json({
+      message: 'Cover banner uploaded successfully.',
+      coverBannerUrl: fileUrl,
+      user: updated,
+    });
+  } catch (error) {
+    console.error('Upload Banner Image Error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload cover banner.' });
+  }
+};
+
 const uploadQrImage = async (req, res) => {
   const userId = req.user.id;
   try {
@@ -103,6 +150,10 @@ const uploadQrImage = async (req, res) => {
 module.exports = {
   getProfile,
   updateProfile,
+  uploadAvatarImage,
+  uploadBannerImage,
   uploadQrImage,
+  uploadAvatarMiddleware: upload.single('avatar'),
+  uploadBannerMiddleware: upload.single('banner'),
   uploadMiddleware: upload.single('qrImage'),
 };

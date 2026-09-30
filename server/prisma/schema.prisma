@@ -20,6 +20,7 @@ model User {
 
   // Professional Profile Info
   profilePhotoUrl          String?
+  coverBannerUrl           String?
   phone                    String?
   location                 String?
   profession               String?

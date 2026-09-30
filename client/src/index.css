@@ -1,0 +1,93 @@
+/* Global Application & Print Stylesheet */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  /* Reset all background containers to pure white and force dark text for PDF print */
+  html, body, #root, main, div, p, span {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide web layout UI elements during print */
+  .no-print,
+  nav,
+  header,
+  aside,
+  footer,
+  .MuiDrawer-root,
+  .MuiAppBar-root,
+  .MuiBreadcrumbs-root,
+  .MuiDialog-root,
+  .MuiSnackbar-root,
+  button {
+    display: none !important;
+  }
+
+  /* Simple, elegant printable invoice container with a thin clean border */
+  #printable-invoice {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    padding: 24px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Force high contrast dark text for all elements inside printable invoice */
+  #printable-invoice *,
+  #printable-invoice .MuiTypography-root,
+  #printable-invoice .MuiTableCell-root,
+  #printable-invoice p,
+  #printable-invoice span,
+  #printable-invoice th,
+  #printable-invoice td {
+    color: #0f172a !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+
+  #printable-invoice .MuiTypography-colorTextSecondary,
+  #printable-invoice .text-secondary {
+    color: #475569 !important;
+  }
+
+  /* Inner cards and boxes inside printable invoice */
+  #printable-invoice .MuiPaper-root,
+  #printable-invoice .MuiPaper-outlined {
+    border: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+  }
+
+  /* Table styling for print */
+  #printable-invoice .MuiTableHead-root,
+  #printable-invoice .MuiTableHead-root tr,
+  #printable-invoice .MuiTableHead-root th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 800 !important;
+  }
+
+  #printable-invoice .MuiTableCell-root {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 10px 12px !important;
+  }
+
+  /* Prevent awkward page splits inside ledger & payment sections */
+  #printable-invoice table,
+  #printable-invoice .no-break {
+    page-break-inside: avoid;
+  }
+}

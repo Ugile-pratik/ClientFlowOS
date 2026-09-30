@@ -1,8 +1,12 @@
 /**
  * Utility to generate a standard UPI Payment URI
- * Format: upi://pay?pa=<UPI_ID>&pn=<PayeeName>&am=<Amount>&tn=<InvoiceNumber>&cu=INR
+ * Format: upi://pay?pa=<UPI_ID>&pn=<PayeeName>&tn=<InvoiceNumber>&cu=INR
+ * 
+ * Note: No predefined payment amount ('am') parameter is attached.
+ * This ensures scanning the QR code redirects directly to the payee's UPI account
+ * in the client's UPI app (GPay, PhonePe, Paytm, etc.).
  */
-export const generateUpiUri = ({ upiId, payeeName, amount, invoiceNumber }) => {
+export const generateUpiUri = ({ upiId, payeeName, invoiceNumber }) => {
   if (!upiId || !upiId.trim()) return '';
 
   const cleanUpi = upiId.trim();
@@ -14,11 +18,6 @@ export const generateUpiUri = ({ upiId, payeeName, amount, invoiceNumber }) => {
   // pn = Payee Name - Optional
   if (payeeName && payeeName.trim()) {
     params.append('pn', payeeName.trim());
-  }
-
-  // am = Amount - Optional (pre-fills amount in client's UPI app)
-  if (amount !== undefined && amount !== null && !isNaN(Number(amount)) && Number(amount) > 0) {
-    params.append('am', Number(amount).toFixed(2));
   }
 
   // tn = Transaction Note / Invoice Ref - Optional

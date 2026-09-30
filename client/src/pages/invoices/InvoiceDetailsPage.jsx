@@ -34,7 +34,9 @@ import {
   FormControl,
   InputLabel,
   InputAdornment,
-  useTheme
+  useTheme,
+  Tooltip,
+  Zoom
 } from '@mui/material';
 import {
   ArrowBack as BackIcon,
@@ -52,7 +54,8 @@ import {
   CheckCircle as PaidIcon,
   FolderSpecial as ProjectIcon,
   RemoveCircleOutline as RemoveIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { getInvoiceById, updateInvoice, deleteInvoice, recordPayment } from '../../services/invoiceService';
 import { getProjects } from '../../services/projectService';
@@ -80,6 +83,7 @@ const InvoiceDetailsPage = () => {
   const [projects, setProjects] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [qrZoomOpen, setQrZoomOpen] = useState(false);
 
   // Edit Dialog State
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -448,95 +452,132 @@ const InvoiceDetailsPage = () => {
         </Box>
       </Paper>
 
-      {/* Printable Invoice Document */}
-      <Paper sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, mb: 4, boxShadow: '0 3px 20px rgba(0,0,0,0.06)' }} id="printable-invoice">
-        {/* Invoice Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+      {/* Printable Invoice Document Container */}
+      <Paper
+        elevation={2}
+        sx={{
+          p: { xs: 3, md: 5 },
+          borderRadius: 3,
+          mb: 4,
+          bgcolor: 'background.paper',
+          color: 'text.primary',
+          boxShadow: '0 3px 20px rgba(0,0,0,0.06)'
+        }}
+        id="printable-invoice"
+      >
+        {/* Invoice Header / Business Identity */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, pb: 3, borderBottom: '2px solid', borderColor: 'divider', flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', letterSpacing: '-0.5px' }}>
-              ClientFlow OS
+            <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', letterSpacing: '-0.5px' }}>
+              {profile?.businessName || profile?.fullName || 'ClientFlow OS'}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Professional Freelance & Business Suite
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+              {profile?.profession || 'Professional Business & Freelance Services'}
             </Typography>
+            {profile?.email && (
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                Email: {profile.email} {profile?.phone ? `| Phone: ${profile.phone}` : ''}
+              </Typography>
+            )}
+            {profile?.businessAddress && (
+              <Typography variant="caption" color="text.secondary" display="block">
+                Address: {profile.businessAddress}
+              </Typography>
+            )}
+            {profile?.gstNumber && (
+              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }} display="block">
+                GSTIN / Tax ID: {profile.gstNumber}
+              </Typography>
+            )}
           </Box>
 
-          <Box sx={{ textAlign: { sm: 'right' } }}>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+          <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+            <Typography variant="h4" sx={{ fontWeight: 900, color: 'text.primary', letterSpacing: '1px' }}>
               INVOICE
             </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.main' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'primary.main', mt: -0.5 }}>
               #{invoice.invoiceNumber}
             </Typography>
+            <Chip
+              label={invoice.status}
+              color={STATUS_COLORS[invoice.status] || 'default'}
+              size="small"
+              sx={{ fontWeight: 700, borderRadius: 1.5, my: 0.5 }}
+            />
             <Typography variant="caption" color="text.secondary" display="block">
               Invoice Date: {formatDate(invoice.invoiceDate || invoice.createdAt)}
             </Typography>
-            <Typography variant="caption" color="text.secondary" display="block">
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontWeight: 700 }}>
               Due Date: {formatDate(invoice.dueDate)}
             </Typography>
           </Box>
         </Box>
 
-        <Divider sx={{ my: 3 }} />
-
-        {/* Billed To / Project Information */}
+        {/* Billed To / Project Billing Grid */}
         <Grid container spacing={4} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
-              Billed To:
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 0.5 }}>
-              {invoice.project?.client?.name || 'Client Name'}
-            </Typography>
-            {invoice.project?.client?.company && (
-              <Typography variant="body2" color="text.secondary">
-                {invoice.project.client.company}
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: theme.palette.action.hover, height: '100%' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                BILLED TO:
               </Typography>
-            )}
-            {invoice.project?.client?.email && (
-              <Typography variant="body2" color="text.secondary">
-                {invoice.project.client.email}
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, mt: 0.5, color: 'text.primary' }}>
+                {invoice.project?.client?.name || 'Client Name'}
               </Typography>
-            )}
-            {invoice.project?.client?.phone && (
-              <Typography variant="body2" color="text.secondary">
-                {invoice.project.client.phone}
-              </Typography>
-            )}
-            {invoice.project?.client?.address && (
-              <Typography variant="caption" color="text.secondary" display="block">
-                {invoice.project.client.address}, {invoice.project.client.city || ''}
-              </Typography>
-            )}
-            {invoice.project?.client?.gstNumber && (
-              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }} display="block">
-                GST / Tax ID: {invoice.project.client.gstNumber}
-              </Typography>
-            )}
+              {invoice.project?.client?.company && (
+                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  {invoice.project.client.company}
+                </Typography>
+              )}
+              {invoice.project?.client?.email && (
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                  Email: {invoice.project.client.email}
+                </Typography>
+              )}
+              {invoice.project?.client?.phone && (
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Phone: {invoice.project.client.phone}
+                </Typography>
+              )}
+              {invoice.project?.client?.address && (
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Address: {invoice.project.client.address}, {invoice.project.client.city || ''}
+                </Typography>
+              )}
+              {invoice.project?.client?.gstNumber && (
+                <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }} display="block">
+                  Client GSTIN: {invoice.project.client.gstNumber}
+                </Typography>
+              )}
+            </Paper>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
-              Project Context:
-            </Typography>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mt: 0.5 }}>
-              {invoice.project?.title || 'Project Title'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Status: {invoice.status}
-            </Typography>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: theme.palette.action.hover, height: '100%' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                PROJECT & PAYMENT SUMMARY:
+              </Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, mt: 0.5, color: 'text.primary' }}>
+                {invoice.project?.title || 'Project Deliverables'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Payment Status: <strong>{invoice.status}</strong>
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                Currency: INR (₹)
+              </Typography>
+            </Paper>
           </Grid>
         </Grid>
 
-        {/* Line Items Table */}
-        <TableContainer sx={{ mb: 4 }}>
+        {/* Itemized Line Items Table */}
+        <TableContainer sx={{ mb: 4, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
           <Table>
             <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>Description</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 700 }}>Qty</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Rate</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Amount</TableCell>
+                <TableCell sx={{ fontWeight: 800, color: 'text.primary' }}>Item Description</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 800, color: 'text.primary' }}>Qty</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 800, color: 'text.primary' }}>Rate (₹)</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 800, color: 'text.primary' }}>Amount (₹)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -545,16 +586,16 @@ const InvoiceDetailsPage = () => {
                   <TableCell sx={{ fontWeight: 600 }}>{item.description || 'Services Rendered'}</TableCell>
                   <TableCell align="center">{item.qty || 1}</TableCell>
                   <TableCell align="right">{formatCurrency(item.rate)}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700 }}>{formatCurrency(item.amount)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, color: 'text.primary' }}>{formatCurrency(item.amount)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Financial Totals Calculation Box */}
+        {/* Financial Calculation Summary Box */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
-          <Box sx={{ width: { xs: '100%', sm: 320 } }}>
+          <Paper variant="outlined" sx={{ width: { xs: '100%', sm: 340 }, p: 2.5, borderRadius: 2, bgcolor: theme.palette.action.hover }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
               <Typography variant="body2" color="text.secondary">Subtotal:</Typography>
               <Typography variant="body2" sx={{ fontWeight: 700 }}>{formatCurrency(subtotal)}</Typography>
@@ -590,30 +631,30 @@ const InvoiceDetailsPage = () => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
-              <Typography variant="body2" color="text.secondary">Remaining Due:</Typography>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: remainingBalance > 0 ? 'warning.dark' : 'text.secondary' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>Balance Due:</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: remainingBalance > 0 ? 'warning.dark' : 'success.main' }}>
                 {formatCurrency(remainingBalance)}
               </Typography>
             </Box>
-          </Box>
+          </Paper>
         </Box>
 
         {/* Payment History Ledger */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Payment History Ledger
+        <Box sx={{ mt: 4, mb: 4 }} className="no-break">
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: 'text.primary' }}>
+            Payment Ledger History
           </Typography>
           {payments.length === 0 ? (
-            <Box sx={{ py: 3, textAlign: 'center', bgcolor: theme.palette.action.hover, borderRadius: 2 }}>
+            <Box sx={{ py: 2, px: 2, bgcolor: theme.palette.action.hover, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="body2" color="text.secondary">
                 No payments recorded for this invoice yet.
               </Typography>
             </Box>
           ) : (
-            <TableContainer>
+            <TableContainer sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
               <Table size="small">
-                <TableHead>
+                <TableHead sx={{ bgcolor: theme.palette.action.hover }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 700 }}>Date</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Payment Method</TableCell>
@@ -640,16 +681,16 @@ const InvoiceDetailsPage = () => {
 
         {/* Payment Information & UPI QR Code Section */}
         {(profile?.upiId || profile?.paymentQrUrl || profile?.paymentInstructions) && (
-          <Paper variant="outlined" sx={{ p: 2.5, mt: 4, borderRadius: 2, bgcolor: '#f8fafc' }}>
+          <Paper variant="outlined" sx={{ p: 2.5, mt: 4, borderRadius: 2, bgcolor: theme.palette.action.hover }} className="no-break">
             <Grid container spacing={3} alignItems="center">
               <Grid item xs={12} sm={profile?.paymentQrUrl || profile?.upiId ? 8 : 12}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <PaymentIcon fontSize="small" /> Payment Details
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PaymentIcon fontSize="small" /> Payment Instructions
                 </Typography>
 
                 {profile?.upiId && (
                   <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
-                    UPI ID (VPA): <Box component="span" sx={{ fontFamily: 'monospace', color: 'primary.dark', bgcolor: '#e2e8f0', px: 1, py: 0.25, borderRadius: 1 }}>{profile.upiId}</Box>
+                    UPI ID (VPA): <Box component="span" sx={{ fontFamily: 'monospace', color: 'primary.dark', bgcolor: theme.palette.action.selected, px: 1, py: 0.25, borderRadius: 1 }}>{profile.upiId}</Box>
                   </Typography>
                 )}
 
@@ -662,48 +703,81 @@ const InvoiceDetailsPage = () => {
 
               {(profile?.paymentQrUrl || profile?.upiId) && (
                 <Grid item xs={12} sm={4} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                  <Box sx={{ display: 'inline-block', textAlign: 'center', p: 1.5, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2 }}>
-                    {profile.paymentQrUrl ? (
+                  {remainingBalance === 0 || invoice.status === 'Paid' ? (
+                    <Paper elevation={0} sx={{ p: 2, bgcolor: 'success.light', color: 'success.contrastText', borderRadius: 2, textAlign: 'center' }}>
+                      <PaidIcon sx={{ fontSize: 36, mb: 0.5 }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                        Invoice Fully Paid
+                      </Typography>
+                      <Typography variant="caption" display="block">
+                        Thank you for your prompt business!
+                      </Typography>
+                    </Paper>
+                  ) : (
+                    <Tooltip title="Click to enlarge QR Code" arrow>
                       <Box
-                        component="img"
-                        src={profile.paymentQrUrl}
-                        alt="Payment QR Code"
-                        sx={{ width: 130, height: 130, objectFit: 'contain' }}
-                      />
-                    ) : profile.upiId ? (
-                      <QRCodeSVG
-                        value={generateUpiUri({
-                          upiId: profile.upiId,
-                          payeeName: profile.fullName,
-                          amount: remainingBalance > 0 ? remainingBalance : invoice.amount,
-                          invoiceNumber: invoice.invoiceNumber
-                        })}
-                        size={130}
-                        level="H"
-                        includeMargin={true}
-                      />
-                    ) : null}
-                    <Typography variant="caption" display="block" sx={{ mt: 0.5, fontWeight: 700, color: 'text.secondary' }}>
-                      Scan to Pay via UPI
-                    </Typography>
-                  </Box>
+                        onClick={() => setQrZoomOpen(true)}
+                        sx={{
+                          display: 'inline-block',
+                          textAlign: 'center',
+                          p: 1.5,
+                          bgcolor: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': { transform: 'scale(1.06)' }
+                        }}
+                      >
+                        {profile.paymentQrUrl ? (
+                          <Box
+                            component="img"
+                            src={profile.paymentQrUrl}
+                            alt="Payment QR Code"
+                            sx={{ width: 130, height: 130, objectFit: 'contain' }}
+                          />
+                        ) : profile.upiId ? (
+                          <QRCodeSVG
+                            value={generateUpiUri({
+                              upiId: profile.upiId,
+                              payeeName: profile.fullName,
+                              invoiceNumber: invoice.invoiceNumber
+                            })}
+                            size={130}
+                            level="H"
+                            includeMargin={true}
+                          />
+                        ) : null}
+                        <Typography variant="caption" display="block" sx={{ mt: 0.5, fontWeight: 700, color: 'primary.main' }}>
+                          Scan to Pay via UPI
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  )}
                 </Grid>
               )}
             </Grid>
           </Paper>
         )}
 
-        {/* Notes & Terms & Conditions */}
+        {/* Terms & Conditions / Notes */}
         {invoice.notes && (
-          <Box sx={{ mt: 4, pt: 3, borderTop: '1px dashed', borderColor: 'divider' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+          <Box sx={{ mt: 3, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }} className="no-break">
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 800, textTransform: 'uppercase' }}>
               Terms & Conditions / Notes:
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {invoice.notes}
             </Typography>
           </Box>
         )}
+
+        {/* Printable Document Footer */}
+        <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }} className="no-break">
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+            Thank you for your business! | Generated via ClientFlow OS
+          </Typography>
+        </Box>
       </Paper>
 
       {/* Edit Invoice Dialog */}
@@ -1011,6 +1085,64 @@ const InvoiceDetailsPage = () => {
             {deleting ? <CircularProgress size={18} color="inherit" /> : 'Delete'}
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/* QR Lightbox Dialog */}
+      <Dialog
+        open={qrZoomOpen}
+        onClose={() => setQrZoomOpen(false)}
+        TransitionComponent={Zoom}
+        keepMounted
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 3,
+            textAlign: 'center',
+            maxWidth: 380,
+            width: '90%'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="700" color="primary">
+            Invoice #{invoice?.invoiceNumber} Payment QR
+          </Typography>
+          <IconButton size="small" onClick={() => setQrZoomOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2, display: 'inline-block', mb: 2 }}>
+          {profile?.paymentQrUrl ? (
+            <Box
+              component="img"
+              src={profile.paymentQrUrl}
+              alt="Enlarged Payment QR"
+              sx={{ width: 250, height: 250, objectFit: 'contain' }}
+            />
+          ) : profile?.upiId ? (
+            <QRCodeSVG
+              value={generateUpiUri({
+                upiId: profile.upiId,
+                payeeName: profile.fullName,
+                invoiceNumber: invoice.invoiceNumber
+              })}
+              size={250}
+              level="H"
+              includeMargin={true}
+            />
+          ) : null}
+        </Box>
+
+        {profile?.upiId && (
+          <Typography variant="subtitle1" fontWeight="700" color="primary.main" gutterBottom>
+            {profile.upiId}
+          </Typography>
+        )}
+        <Typography variant="caption" color="text.secondary" display="block">
+          Scan with any UPI App (GPay, PhonePe, Paytm) to open UPI payment. Click anywhere to close.
+        </Typography>
       </Dialog>
 
       {/* Notifications */}

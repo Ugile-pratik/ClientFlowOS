@@ -13,6 +13,8 @@ const getMockProfile = () => {
     id: 1,
     email: 'alex@clientflow.io',
     fullName: 'Alex Johnson',
+    profilePhotoUrl: '',
+    coverBannerUrl: '',
     isVerified: true,
     upiId: 'alexjohnson@upi',
     paymentQrUrl: '',
@@ -55,6 +57,76 @@ export const updateProfile = async (profileData) => {
   return response.data;
 };
 
+export const uploadAvatarImage = async (file) => {
+  if (isMockMode()) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result;
+        const current = getMockProfile();
+        const updated = {
+          ...current,
+          profilePhotoUrl: base64Url
+        };
+        localStorage.setItem('clientflow-mock-profile', JSON.stringify(updated));
+        resolve({
+          message: 'Profile photo uploaded successfully.',
+          profilePhotoUrl: base64Url,
+          user: updated
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const token = localStorage.getItem('clientflow-token');
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const response = await axios.post('/api/profile/upload-avatar', formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+};
+
+export const uploadBannerImage = async (file) => {
+  if (isMockMode()) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result;
+        const current = getMockProfile();
+        const updated = {
+          ...current,
+          coverBannerUrl: base64Url
+        };
+        localStorage.setItem('clientflow-mock-profile', JSON.stringify(updated));
+        resolve({
+          message: 'Cover banner uploaded successfully.',
+          coverBannerUrl: base64Url,
+          user: updated
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const token = localStorage.getItem('clientflow-token');
+  const formData = new FormData();
+  formData.append('banner', file);
+
+  const response = await axios.post('/api/profile/upload-banner', formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+};
+
 export const uploadQrImage = async (file) => {
   if (isMockMode()) {
     return new Promise((resolve) => {
@@ -93,5 +165,7 @@ export const uploadQrImage = async (file) => {
 export default {
   getProfile,
   updateProfile,
+  uploadAvatarImage,
+  uploadBannerImage,
   uploadQrImage
 };

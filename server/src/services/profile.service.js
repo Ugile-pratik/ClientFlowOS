@@ -6,6 +6,7 @@ const USER_SELECT_FIELDS = {
   fullName: true,
   isVerified: true,
   profilePhotoUrl: true,
+  coverBannerUrl: true,
   phone: true,
   location: true,
   profession: true,
@@ -82,6 +83,7 @@ const updateProfile = async (userId, data) => {
   const allowedKeys = [
     'fullName',
     'profilePhotoUrl',
+    'coverBannerUrl',
     'phone',
     'location',
     'profession',

@@ -24,7 +24,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Tooltip,
+  Zoom
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -39,28 +41,33 @@ import {
   Business as BusinessIcon,
   QrCode as QrCodeIcon,
   UploadFile as UploadFileIcon,
-  Delete as DeleteIcon,
   Payment as PaymentIcon,
   AttachMoney as RateIcon,
   Star as ExperienceIcon,
   Add as AddIcon,
   Close as CloseIcon,
-  CheckCircle as CheckCircleIcon
+  PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
-import { getProfile, updateProfile, uploadQrImage } from '../../services/profileService';
+import { getProfile, updateProfile, uploadAvatarImage, uploadBannerImage, uploadQrImage } from '../../services/profileService';
 import { generateUpiUri } from '../../utils/upiQr';
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editSection, setEditSection] = useState('all'); // 'all' | 'personal' | 'about' | 'business' | 'professional' | 'online'
+  const [qrZoomOpen, setQrZoomOpen] = useState(false);
 
   // Form State for Edit Profile Modal
   const [formData, setFormData] = useState({
     fullName: '',
+    profilePhotoUrl: '',
+    coverBannerUrl: '',
     phone: '',
     location: '',
     profession: '',
@@ -106,7 +113,7 @@ const ProfilePage = () => {
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleOpenEditModal = () => {
+  const handleOpenEditModal = (section = 'all') => {
     if (!profile) return;
     let parsedSkills = [];
     if (profile.skills) {
@@ -119,6 +126,8 @@ const ProfilePage = () => {
 
     setFormData({
       fullName: profile.fullName || '',
+      profilePhotoUrl: profile.profilePhotoUrl || '',
+      coverBannerUrl: profile.coverBannerUrl || '',
       phone: profile.phone || '',
       location: profile.location || '',
       profession: profile.profession || 'Freelancer / Software Developer',
@@ -138,6 +147,7 @@ const ProfilePage = () => {
       paymentQrUrl: profile.paymentQrUrl || '',
       paymentInstructions: profile.paymentInstructions || ''
     });
+    setEditSection(section);
     setEditModalOpen(true);
   };
 
@@ -157,6 +167,64 @@ const ProfilePage = () => {
       ...prev,
       skills: prev.skills.filter(s => s !== skillToRemove)
     }));
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(png|jpe?g|webp)$/i)) {
+      showSnackbar('Only PNG, JPG, JPEG, and WEBP images are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showSnackbar('File size exceeds 5MB limit.', 'error');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const res = await uploadAvatarImage(file);
+      setProfile(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
+      setFormData(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
+      showSnackbar('Profile picture updated successfully!', 'success');
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      showSnackbar('Failed to upload profile picture.', 'error');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(png|jpe?g|webp)$/i)) {
+      showSnackbar('Only PNG, JPG, JPEG, and WEBP images are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showSnackbar('File size exceeds 5MB limit.', 'error');
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const res = await uploadBannerImage(file);
+      setProfile(prev => ({ ...prev, coverBannerUrl: res.coverBannerUrl }));
+      setFormData(prev => ({ ...prev, coverBannerUrl: res.coverBannerUrl }));
+      showSnackbar('Cover banner updated successfully!', 'success');
+    } catch (err) {
+      console.error('Banner upload error:', err);
+      showSnackbar('Failed to upload cover banner.', 'error');
+    } finally {
+      setUploadingBanner(false);
+      e.target.value = null;
+    }
   };
 
   const handleFileUpload = async (e) => {
@@ -193,6 +261,8 @@ const ProfilePage = () => {
     try {
       const updated = await updateProfile({
         fullName: formData.fullName.trim(),
+        profilePhotoUrl: formData.profilePhotoUrl,
+        coverBannerUrl: formData.coverBannerUrl,
         phone: formData.phone.trim(),
         location: formData.location.trim(),
         profession: formData.profession.trim(),
@@ -213,11 +283,11 @@ const ProfilePage = () => {
         paymentInstructions: formData.paymentInstructions.trim()
       });
       setProfile(updated);
-      showSnackbar('Profile details updated successfully!', 'success');
+      showSnackbar('Profile section updated successfully!', 'success');
       setEditModalOpen(false);
     } catch (err) {
       console.error('Error saving profile:', err);
-      showSnackbar(err.response?.data?.error || 'Failed to update profile.', 'error');
+      showSnackbar(err.response?.data?.error || 'Failed to update profile section.', 'error');
     } finally {
       setSaving(false);
     }
@@ -239,46 +309,116 @@ const ProfilePage = () => {
 
   const upiUri = generateUpiUri({
     upiId: profile?.upiId,
-    payeeName: profile?.businessName || profile?.fullName,
-    amount: '5000',
-    invoiceNumber: 'INV-SAMPLE'
+    payeeName: profile?.businessName || profile?.fullName
   });
+
+  const getModalTitle = () => {
+    switch (editSection) {
+      case 'personal': return 'Edit Personal Information & Photos';
+      case 'about': return 'Edit About Me / Bio';
+      case 'business': return 'Edit Business & Payment Settings';
+      case 'professional': return 'Edit Professional Details';
+      case 'online': return 'Edit Online Presence';
+      default: return 'Edit Complete Professional Profile';
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* 1. Header Profile Banner */}
+      {/* 1. Full Cover Background Header Profile Card */}
       <Paper
-        elevation={2}
+        elevation={3}
         sx={{
           p: { xs: 3, md: 4 },
           mb: 4,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          color: '#ffffff'
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: 200,
+          display: 'flex',
+          alignItems: 'center',
+          background: profile?.coverBannerUrl
+            ? `linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.85)), url(${profile.coverBannerUrl}) center/cover no-repeat`
+            : 'linear-gradient(135deg, #1e293b 0%, #3b82f6 50%, #0f172a 100%)',
+          color: '#ffffff',
+          transition: 'background 0.3s ease',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.12)'
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, gap: 3 }}>
-          <Avatar
+        {/* Cover Banner Upload Action Button */}
+        <Tooltip title="Upload Cover Banner Image" arrow>
+          <Button
+            component="label"
+            size="small"
+            variant="contained"
+            startIcon={uploadingBanner ? <CircularProgress size={16} color="inherit" /> : <PhotoCameraIcon fontSize="small" />}
             sx={{
-              width: 100,
-              height: 100,
-              fontSize: '2.5rem',
-              bgcolor: 'primary.main',
-              border: '4px solid rgba(255,255,255,0.2)'
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'rgba(15, 23, 42, 0.75)',
+              color: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              backdropFilter: 'blur(4px)',
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: 2,
+              px: 2,
+              '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.95)' }
             }}
           >
-            {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : 'P'}
-          </Avatar>
+            Change Banner
+            <input type="file" hidden accept="image/*" onChange={handleBannerUpload} />
+          </Button>
+        </Tooltip>
+
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, gap: 3, zIndex: 1 }}>
+          {/* Avatar with Camera Icon Badge */}
+          <Box sx={{ position: 'relative', display: 'inline-block' }}>
+            <Avatar
+              src={profile?.profilePhotoUrl || ''}
+              sx={{
+                width: 110,
+                height: 110,
+                fontSize: '2.5rem',
+                bgcolor: 'primary.main',
+                border: '4px solid rgba(255,255,255,0.3)',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.3)'
+              }}
+            >
+              {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : 'P'}
+            </Avatar>
+
+            <Tooltip title="Upload Profile Picture" arrow>
+              <IconButton
+                component="label"
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  bgcolor: 'primary.main',
+                  color: '#ffffff',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                  p: 0.8,
+                  border: '2px solid #ffffff',
+                  '&:hover': { bgcolor: 'primary.dark' }
+                }}
+              >
+                {uploadingAvatar ? <CircularProgress size={16} color="inherit" /> : <PhotoCameraIcon sx={{ fontSize: 16 }} />}
+                <input type="file" hidden accept="image/*" onChange={handleAvatarUpload} />
+              </IconButton>
+            </Tooltip>
+          </Box>
 
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h4" fontWeight="800" gutterBottom>
+            <Typography variant="h4" fontWeight="800" sx={{ color: '#ffffff', letterSpacing: '-0.5px' }} gutterBottom>
               {profile?.fullName || 'Freelancer Professional'}
             </Typography>
-            <Typography variant="subtitle1" sx={{ opacity: 0.9, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <WorkIcon fontSize="small" /> {profile?.profession || 'Freelancer / Software Developer'}
+            <Typography variant="subtitle1" sx={{ opacity: 0.95, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <WorkIcon fontSize="small" sx={{ color: '#60a5fa' }} /> {profile?.profession || 'Freelancer / Software Developer'}
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.7, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <LocationIcon fontSize="small" /> {profile?.location || 'Pune, India'}
+            <Typography variant="body2" sx={{ opacity: 0.8, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <LocationIcon fontSize="small" sx={{ color: '#94a3b8' }} /> {profile?.location || 'Pune, India'}
             </Typography>
           </Box>
 
@@ -286,8 +426,8 @@ const ProfilePage = () => {
             variant="contained"
             color="primary"
             startIcon={<EditIcon />}
-            onClick={handleOpenEditModal}
-            sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
+            onClick={() => handleOpenEditModal('all')}
+            sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700 }}
           >
             Edit Profile
           </Button>
@@ -305,8 +445,8 @@ const ProfilePage = () => {
                   <Typography variant="h6" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PersonIcon color="primary" /> Personal Information
                   </Typography>
-                  <Button size="small" startIcon={<EditIcon />} onClick={handleOpenEditModal}>
-                    Edit
+                  <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEditModal('personal')}>
+                    Edit Section
                   </Button>
                 </Box>
                 <Divider sx={{ mb: 2.5 }} />
@@ -339,8 +479,8 @@ const ProfilePage = () => {
                   <Typography variant="h6" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <WorkIcon color="primary" /> About Me
                   </Typography>
-                  <Button size="small" startIcon={<EditIcon />} onClick={handleOpenEditModal}>
-                    Edit
+                  <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEditModal('about')}>
+                    Edit Section
                   </Button>
                 </Box>
                 <Divider sx={{ mb: 2 }} />
@@ -359,8 +499,8 @@ const ProfilePage = () => {
                   <Typography variant="h6" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BusinessIcon color="primary" /> Business Summary & Payment Settings
                   </Typography>
-                  <Button size="small" startIcon={<EditIcon />} onClick={handleOpenEditModal}>
-                    Edit
+                  <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEditModal('business')}>
+                    Edit Section
                   </Button>
                 </Box>
                 <Divider sx={{ mb: 2.5 }} />
@@ -403,22 +543,39 @@ const ProfilePage = () => {
                         </Typography>
                       ) : (
                         <Typography variant="body2" color="text.secondary">
-                          No payment instructions added yet. Edit your business summary to add bank or UPI details for invoices.
+                          No payment instructions added yet. Click Edit Section above to configure UPI or bank details.
                         </Typography>
                       )}
                     </Grid>
                     <Grid item xs={12} sm={4} sx={{ textAlign: { xs: 'left', sm: 'center' } }}>
-                      {profile?.paymentQrUrl ? (
-                        <Box
-                          component="img"
-                          src={profile.paymentQrUrl}
-                          alt="Payment QR"
-                          sx={{ width: 110, height: 110, objectFit: 'contain', border: '1px solid #cbd5e1', borderRadius: 1.5, p: 0.5, bgcolor: '#ffffff' }}
-                        />
-                      ) : profile?.upiId ? (
-                        <Box sx={{ display: 'inline-block', p: 1, bgcolor: '#ffffff', borderRadius: 1.5, border: '1px solid #cbd5e1' }}>
-                          <QRCodeSVG value={upiUri} size={100} level="H" includeMargin={true} />
-                        </Box>
+                      {profile?.paymentQrUrl || profile?.upiId ? (
+                        <Tooltip title="Click to enlarge QR Code" arrow>
+                          <Box
+                            onClick={() => setQrZoomOpen(true)}
+                            sx={{
+                              display: 'inline-block',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': { transform: 'scale(1.06)' }
+                            }}
+                          >
+                            {profile.paymentQrUrl ? (
+                              <Box
+                                component="img"
+                                src={profile.paymentQrUrl}
+                                alt="Payment QR"
+                                sx={{ width: 110, height: 110, objectFit: 'contain', border: '1px solid #cbd5e1', borderRadius: 1.5, p: 0.5, bgcolor: '#ffffff' }}
+                              />
+                            ) : (
+                              <Box sx={{ display: 'inline-block', p: 1, bgcolor: '#ffffff', borderRadius: 1.5, border: '1px solid #cbd5e1' }}>
+                                <QRCodeSVG value={upiUri} size={100} level="H" includeMargin={true} />
+                              </Box>
+                            )}
+                            <Typography variant="caption" display="block" color="primary.main" sx={{ fontWeight: 600, mt: 0.5 }}>
+                              Click to zoom
+                            </Typography>
+                          </Box>
+                        </Tooltip>
                       ) : (
                         <Typography variant="caption" color="text.secondary">
                           Add UPI ID to generate scannable payment QR
@@ -442,8 +599,8 @@ const ProfilePage = () => {
                   <Typography variant="h6" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ExperienceIcon color="primary" /> Professional Details
                   </Typography>
-                  <Button size="small" startIcon={<EditIcon />} onClick={handleOpenEditModal}>
-                    Edit
+                  <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEditModal('professional')}>
+                    Edit Section
                   </Button>
                 </Box>
                 <Divider sx={{ mb: 2.5 }} />
@@ -484,8 +641,8 @@ const ProfilePage = () => {
                   <Typography variant="h6" fontWeight="700" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <WebsiteIcon color="primary" /> Online Presence
                   </Typography>
-                  <Button size="small" startIcon={<EditIcon />} onClick={handleOpenEditModal}>
-                    Edit
+                  <Button size="small" startIcon={<EditIcon />} onClick={() => handleOpenEditModal('online')}>
+                    Edit Section
                   </Button>
                 </Box>
                 <Divider sx={{ mb: 2.5 }} />
@@ -545,231 +702,260 @@ const ProfilePage = () => {
         </Grid>
       </Grid>
 
-      {/* 2. Edit Profile Modal Dialog */}
+      {/* 2. Targeted Section Edit Dialog */}
       <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleSaveProfile}>
           <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            Edit Professional Profile & Business Details
+            {getModalTitle()}
             <IconButton onClick={() => setEditModalOpen(false)} size="small">
               <CloseIcon />
             </IconButton>
           </DialogTitle>
           <DialogContent dividers>
             <Stack spacing={3} sx={{ pt: 1 }}>
-              <Typography variant="subtitle2" fontWeight="700" color="primary">
-                PERSONAL INFORMATION
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    required
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Location / City"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Pune, India"
-                  />
-                </Grid>
-              </Grid>
-
-              <Divider />
-
-              <Typography variant="subtitle2" fontWeight="700" color="primary">
-                BUSINESS & PAYMENT QR SETTINGS
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Business Name"
-                    value={formData.businessName}
-                    onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    placeholder="e.g. Pratik Digital Services"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Business Type</InputLabel>
-                    <Select
-                      value={formData.businessType}
-                      label="Business Type"
-                      onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                    >
-                      <MenuItem value="Individual / Freelancer">Individual / Freelancer</MenuItem>
-                      <MenuItem value="Sole Proprietorship">Sole Proprietorship</MenuItem>
-                      <MenuItem value="Partnership / LLP">Partnership / LLP</MenuItem>
-                      <MenuItem value="Private Limited">Private Limited</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="GST / Tax ID Number"
-                    value={formData.gstNumber}
-                    onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value })}
-                    placeholder="e.g. 27AAAAA1111A1Z1"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="UPI ID (VPA)"
-                    value={formData.upiId}
-                    onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
-                    placeholder="e.g. pratik@upi or 9876543210@okicici"
-                    helperText="Generates scannable QR code on generated client invoices."
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label="Business Address"
-                    value={formData.businessAddress}
-                    onChange={(e) => setFormData({ ...formData, businessAddress: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label="Payment Instructions for Invoices"
-                    value={formData.paymentInstructions}
-                    onChange={(e) => setFormData({ ...formData, paymentInstructions: e.target.value })}
-                    placeholder="e.g. Please mention invoice number in UPI payment note."
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    component="label"
-                    variant="outlined"
-                    startIcon={uploadingQr ? <CircularProgress size={18} /> : <UploadFileIcon />}
-                    disabled={uploadingQr}
-                  >
-                    {uploadingQr ? 'Uploading...' : formData.paymentQrUrl ? 'Replace Custom QR Image' : 'Upload Custom QR Image'}
-                    <input type="file" hidden accept="image/png, image/jpeg, image/jpg, image/webp" onChange={handleFileUpload} />
-                  </Button>
-                </Grid>
-              </Grid>
-
-              <Divider />
-
-              <Typography variant="subtitle2" fontWeight="700" color="primary">
-                PROFESSIONAL INFORMATION
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Profession / Title"
-                    value={formData.profession}
-                    onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
-                    placeholder="Software Developer / UI Consultant"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Hourly Rate (₹)"
-                    value={formData.hourlyRate}
-                    onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="About Me / Bio"
-                    value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                    placeholder="Tell clients about your expertise, experience, and background..."
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="caption" fontWeight="600" color="text.secondary" gutterBottom display="block">
-                    SKILLS & EXPERTISE
+              {/* SECTION: Personal Information */}
+              {(editSection === 'all' || editSection === 'personal') && (
+                <>
+                  <Typography variant="subtitle2" fontWeight="700" color="primary">
+                    PERSONAL INFORMATION
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-                    <TextField
-                      size="small"
-                      placeholder="Add a skill (e.g. React, Python)"
-                      value={newSkillInput}
-                      onChange={(e) => setNewSkillInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddSkill();
-                        }
-                      }}
-                    />
-                    <Button variant="outlined" size="small" onClick={handleAddSkill} startIcon={<AddIcon />}>
-                      Add
-                    </Button>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {formData.skills.map((skill, idx) => (
-                      <Chip key={idx} label={skill} onDelete={() => handleRemoveSkill(skill)} color="primary" size="small" />
-                    ))}
-                  </Box>
-                </Grid>
-              </Grid>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Full Name"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                        required
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Phone Number"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="+91 98765 43210"
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Location / City"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        placeholder="Pune, India"
+                      />
+                    </Grid>
+                  </Grid>
+                  {editSection === 'all' && <Divider />}
+                </>
+              )}
 
-              <Divider />
+              {/* SECTION: Business & Payment Settings */}
+              {(editSection === 'all' || editSection === 'business') && (
+                <>
+                  <Typography variant="subtitle2" fontWeight="700" color="primary">
+                    BUSINESS & PAYMENT QR SETTINGS
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Business Name"
+                        value={formData.businessName}
+                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                        placeholder="e.g. Pratik Digital Services"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Business Type</InputLabel>
+                        <Select
+                          value={formData.businessType}
+                          label="Business Type"
+                          onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+                        >
+                          <MenuItem value="Individual / Freelancer">Individual / Freelancer</MenuItem>
+                          <MenuItem value="Sole Proprietorship">Sole Proprietorship</MenuItem>
+                          <MenuItem value="Partnership / LLP">Partnership / LLP</MenuItem>
+                          <MenuItem value="Private Limited">Private Limited</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="GST / Tax ID Number"
+                        value={formData.gstNumber}
+                        onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value })}
+                        placeholder="e.g. 27AAAAA1111A1Z1"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="UPI ID (VPA)"
+                        value={formData.upiId}
+                        onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
+                        placeholder="e.g. pratik@upi or 9876543210@okicici"
+                        helperText="Generates scannable QR code on client invoices."
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        label="Business Address"
+                        value={formData.businessAddress}
+                        onChange={(e) => setFormData({ ...formData, businessAddress: e.target.value })}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={2}
+                        label="Payment Instructions for Invoices"
+                        value={formData.paymentInstructions}
+                        onChange={(e) => setFormData({ ...formData, paymentInstructions: e.target.value })}
+                        placeholder="e.g. Please mention invoice number in UPI payment note."
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        startIcon={uploadingQr ? <CircularProgress size={18} /> : <UploadFileIcon />}
+                        disabled={uploadingQr}
+                      >
+                        {uploadingQr ? 'Uploading...' : formData.paymentQrUrl ? 'Replace Custom QR Image' : 'Upload Custom QR Image'}
+                        <input type="file" hidden accept="image/png, image/jpeg, image/jpg, image/webp" onChange={handleFileUpload} />
+                      </Button>
+                    </Grid>
+                  </Grid>
+                  {editSection === 'all' && <Divider />}
+                </>
+              )}
 
-              <Typography variant="subtitle2" fontWeight="700" color="primary">
-                ONLINE PRESENCE
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="Website / Portfolio"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="https://myportfolio.com"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="LinkedIn Profile"
-                    value={formData.linkedIn}
-                    onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })}
-                    placeholder="https://linkedin.com/in/username"
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    label="GitHub Profile"
-                    value={formData.github}
-                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                    placeholder="https://github.com/username"
-                  />
-                </Grid>
-              </Grid>
+              {/* SECTION: Professional Information */}
+              {(editSection === 'all' || editSection === 'professional') && (
+                <>
+                  <Typography variant="subtitle2" fontWeight="700" color="primary">
+                    PROFESSIONAL INFORMATION
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Profession / Title"
+                        value={formData.profession}
+                        onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
+                        placeholder="Software Developer / UI Consultant"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        type="number"
+                        label="Hourly Rate (₹)"
+                        value={formData.hourlyRate}
+                        onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="caption" fontWeight="600" color="text.secondary" gutterBottom display="block">
+                        SKILLS & EXPERTISE
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+                        <TextField
+                          size="small"
+                          placeholder="Add a skill (e.g. React, Python)"
+                          value={newSkillInput}
+                          onChange={(e) => setNewSkillInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddSkill();
+                            }
+                          }}
+                        />
+                        <Button variant="outlined" size="small" onClick={handleAddSkill} startIcon={<AddIcon />}>
+                          Add
+                        </Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {formData.skills.map((skill, idx) => (
+                          <Chip key={idx} label={skill} onDelete={() => handleRemoveSkill(skill)} color="primary" size="small" />
+                        ))}
+                      </Box>
+                    </Grid>
+                  </Grid>
+                  {editSection === 'all' && <Divider />}
+                </>
+              )}
+
+              {/* SECTION: About Me */}
+              {(editSection === 'all' || editSection === 'about') && (
+                <>
+                  <Typography variant="subtitle2" fontWeight="700" color="primary">
+                    ABOUT ME / BIO
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={4}
+                        label="About Me / Bio"
+                        value={formData.bio}
+                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                        placeholder="Tell clients about your expertise, experience, and background..."
+                      />
+                    </Grid>
+                  </Grid>
+                  {editSection === 'all' && <Divider />}
+                </>
+              )}
+
+              {/* SECTION: Online Presence */}
+              {(editSection === 'all' || editSection === 'online') && (
+                <>
+                  <Typography variant="subtitle2" fontWeight="700" color="primary">
+                    ONLINE PRESENCE
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        fullWidth
+                        label="Website / Portfolio"
+                        value={formData.website}
+                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                        placeholder="https://myportfolio.com"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        fullWidth
+                        label="LinkedIn Profile"
+                        value={formData.linkedIn}
+                        onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })}
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        fullWidth
+                        label="GitHub Profile"
+                        value={formData.github}
+                        onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                        placeholder="https://github.com/username"
+                      />
+                    </Grid>
+                  </Grid>
+                </>
+              )}
             </Stack>
           </DialogContent>
           <DialogActions sx={{ px: 3, py: 2 }}>
@@ -777,10 +963,59 @@ const ProfilePage = () => {
               Cancel
             </Button>
             <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save Profile Changes'}
+              {saving ? <CircularProgress size={20} color="inherit" /> : 'Save Changes'}
             </Button>
           </DialogActions>
         </form>
+      </Dialog>
+
+      {/* QR Lightbox Dialog */}
+      <Dialog
+        open={qrZoomOpen}
+        onClose={() => setQrZoomOpen(false)}
+        TransitionComponent={Zoom}
+        keepMounted
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 3,
+            textAlign: 'center',
+            maxWidth: 380,
+            width: '90%'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="700" color="primary">
+            UPI Payment QR Code
+          </Typography>
+          <IconButton size="small" onClick={() => setQrZoomOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2, display: 'inline-block', mb: 2 }}>
+          {profile?.paymentQrUrl ? (
+            <Box
+              component="img"
+              src={profile.paymentQrUrl}
+              alt="Enlarged Payment QR"
+              sx={{ width: 250, height: 250, objectFit: 'contain' }}
+            />
+          ) : profile?.upiId ? (
+            <QRCodeSVG value={upiUri} size={250} level="H" includeMargin={true} />
+          ) : null}
+        </Box>
+
+        {profile?.upiId && (
+          <Typography variant="subtitle1" fontWeight="700" color="primary.main" gutterBottom>
+            {profile.upiId}
+          </Typography>
+        )}
+        <Typography variant="caption" color="text.secondary" display="block">
+          Scan with any UPI App (GPay, PhonePe, Paytm) to make payment. Click anywhere to close.
+        </Typography>
       </Dialog>
 
       {/* Notifications Snackbar */}

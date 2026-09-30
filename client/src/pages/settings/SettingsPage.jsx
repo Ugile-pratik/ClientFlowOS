@@ -23,7 +23,11 @@ import {
   FormControl,
   InputLabel,
   Stack,
-  Tooltip
+  Tooltip,
+  Dialog,
+  Zoom,
+  IconButton,
+  Avatar
 } from '@mui/material';
 import {
   Business as BusinessIcon,
@@ -37,11 +41,13 @@ import {
   Save as SaveIcon,
   Lock as LockIcon,
   CheckCircle as CheckCircleIcon,
-  Receipt as InvoiceIcon
+  Receipt as InvoiceIcon,
+  Close as CloseIcon,
+  PhotoCamera as PhotoCameraIcon
 } from '@mui/icons-material';
 import { QRCodeSVG } from 'qrcode.react';
 import { getSettings, updateSettings, changePassword } from '../../services/settingsService';
-import { uploadQrImage } from '../../services/profileService';
+import { uploadAvatarImage, uploadBannerImage, uploadQrImage } from '../../services/profileService';
 import { generateUpiUri } from '../../utils/upiQr';
 
 function TabPanel(props) {
@@ -57,11 +63,16 @@ const SettingsPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingQr, setUploadingQr] = useState(false);
+  const [qrZoomOpen, setQrZoomOpen] = useState(false);
 
   // Settings State
   const [formData, setFormData] = useState({
-    // Business Profile
+    // Business Profile & Media
+    profilePhotoUrl: '',
+    coverBannerUrl: '',
     businessName: '',
     businessType: 'Individual / Freelancer',
     gstNumber: '',
@@ -111,6 +122,62 @@ const SettingsPage = () => {
   useEffect(() => {
     fetchSettingsData();
   }, []);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(png|jpe?g|webp)$/i)) {
+      showSnackbar('Only PNG, JPG, JPEG, and WEBP images are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showSnackbar('File size exceeds 5MB limit.', 'error');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const res = await uploadAvatarImage(file);
+      setFormData(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
+      showSnackbar('Profile picture updated successfully!', 'success');
+    } catch (err) {
+      console.error('Avatar upload error:', err);
+      showSnackbar('Failed to upload profile picture.', 'error');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = null;
+    }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(png|jpe?g|webp)$/i)) {
+      showSnackbar('Only PNG, JPG, JPEG, and WEBP images are allowed.', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showSnackbar('File size exceeds 5MB limit.', 'error');
+      return;
+    }
+
+    setUploadingBanner(true);
+    try {
+      const res = await uploadBannerImage(file);
+      setFormData(prev => ({ ...prev, coverBannerUrl: res.coverBannerUrl }));
+      showSnackbar('Cover banner updated successfully!', 'success');
+    } catch (err) {
+      console.error('Banner upload error:', err);
+      showSnackbar('Failed to upload cover banner.', 'error');
+    } finally {
+      setUploadingBanner(false);
+      e.target.value = null;
+    }
+  };
 
   const fetchSettingsData = async () => {
     setLoading(true);
@@ -242,9 +309,7 @@ const SettingsPage = () => {
 
   const previewUpiUri = generateUpiUri({
     upiId: formData.upiId,
-    payeeName: formData.businessName || formData.fullName,
-    amount: '5000',
-    invoiceNumber: `${formData.invoicePrefix}-${String(formData.nextInvoiceNumber).padStart(3, '0')}`
+    payeeName: formData.businessName || formData.fullName
   });
 
   return (
@@ -295,6 +360,83 @@ const SettingsPage = () => {
 
             <form onSubmit={handleSaveSettings}>
               <Grid container spacing={2.5}>
+                {/* Profile Media Section */}
+                <Grid item xs={12}>
+                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: '#f8fafc' }}>
+                    <Typography variant="subtitle2" fontWeight="700" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <PhotoCameraIcon fontSize="small" /> Profile Picture & Cover Banner
+                    </Typography>
+
+                    <Grid container spacing={3} alignItems="center" sx={{ mt: 0.5 }}>
+                      {/* Avatar Upload Box */}
+                      <Grid item xs={12} sm={6}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Avatar
+                            src={formData.profilePhotoUrl || ''}
+                            sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                          >
+                            {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'P'}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" fontWeight="700">
+                              Profile Picture (Avatar)
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                              PNG, JPG, or WEBP (Max 5MB)
+                            </Typography>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              component="label"
+                              startIcon={uploadingAvatar ? <CircularProgress size={16} /> : <PhotoCameraIcon />}
+                              disabled={uploadingAvatar}
+                            >
+                              Upload Photo
+                              <input type="file" hidden accept="image/*" onChange={handleAvatarUpload} />
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Grid>
+
+                      {/* Cover Banner Upload Box */}
+                      <Grid item xs={12} sm={6}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box
+                            sx={{
+                              width: 100,
+                              height: 56,
+                              borderRadius: 1.5,
+                              overflow: 'hidden',
+                              background: formData.coverBannerUrl
+                                ? `url(${formData.coverBannerUrl}) center/cover no-repeat`
+                                : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                              border: '1px solid #cbd5e1'
+                            }}
+                          />
+                          <Box>
+                            <Typography variant="body2" fontWeight="700">
+                              Cover Banner Image
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                              Header banner for profile page
+                            </Typography>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              component="label"
+                              startIcon={uploadingBanner ? <CircularProgress size={16} /> : <PhotoCameraIcon />}
+                              disabled={uploadingBanner}
+                            >
+                              Upload Banner
+                              <input type="file" hidden accept="image/*" onChange={handleBannerUpload} />
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -593,34 +735,51 @@ const SettingsPage = () => {
                     borderRadius: 2
                   }}
                 >
-                  {formData.paymentQrUrl ? (
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Chip icon={<CheckCircleIcon />} label="Custom Uploaded QR" color="primary" size="small" sx={{ mb: 2 }} />
+                  {formData.paymentQrUrl || (formData.upiId && formData.upiId.trim()) ? (
+                    <Tooltip title="Click to enlarge QR Code" arrow>
                       <Box
-                        component="img"
-                        src={formData.paymentQrUrl}
-                        alt="Payment QR Code"
+                        onClick={() => setQrZoomOpen(true)}
                         sx={{
-                          width: 200,
-                          height: 200,
-                          objectFit: 'contain',
-                          borderRadius: 2,
-                          border: '1px solid #e2e8f0',
-                          p: 1,
-                          bgcolor: '#ffffff'
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': { transform: 'scale(1.05)' }
                         }}
-                      />
-                    </Box>
-                  ) : formData.upiId && formData.upiId.trim() ? (
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Chip icon={<QrCodeIcon />} label="Auto-Generated UPI QR" color="success" size="small" sx={{ mb: 2 }} />
-                      <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #e2e8f0', display: 'inline-block' }}>
-                        <QRCodeSVG value={previewUpiUri} size={180} level="H" includeMargin={true} />
+                      >
+                        {formData.paymentQrUrl ? (
+                          <>
+                            <Chip icon={<CheckCircleIcon />} label="Custom Uploaded QR" color="primary" size="small" sx={{ mb: 2 }} />
+                            <Box
+                              component="img"
+                              src={formData.paymentQrUrl}
+                              alt="Payment QR Code"
+                              sx={{
+                                width: 200,
+                                height: 200,
+                                objectFit: 'contain',
+                                borderRadius: 2,
+                                border: '1px solid #e2e8f0',
+                                p: 1,
+                                bgcolor: '#ffffff'
+                              }}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <Chip icon={<QrCodeIcon />} label="Auto-Generated UPI QR" color="success" size="small" sx={{ mb: 2 }} />
+                            <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #e2e8f0', display: 'inline-block' }}>
+                              <QRCodeSVG value={previewUpiUri} size={180} level="H" includeMargin={true} />
+                            </Box>
+                            <Typography variant="subtitle2" sx={{ mt: 1, fontWeight: 700 }}>
+                              {formData.upiId}
+                            </Typography>
+                          </>
+                        )}
+                        <Typography variant="caption" display="block" color="primary.main" sx={{ fontWeight: 600, mt: 1 }}>
+                          Click to zoom
+                        </Typography>
                       </Box>
-                      <Typography variant="subtitle2" sx={{ mt: 1, fontWeight: 700 }}>
-                        {formData.upiId}
-                      </Typography>
-                    </Box>
+                    </Tooltip>
                   ) : (
                     <Box sx={{ py: 3, textAlign: 'center' }}>
                       <QrCodeIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 1 }} />
@@ -862,6 +1021,55 @@ const SettingsPage = () => {
           </CardContent>
         </Card>
       </TabPanel>
+
+      {/* QR Lightbox Dialog */}
+      <Dialog
+        open={qrZoomOpen}
+        onClose={() => setQrZoomOpen(false)}
+        TransitionComponent={Zoom}
+        keepMounted
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 3,
+            textAlign: 'center',
+            maxWidth: 380,
+            width: '90%'
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" fontWeight="700" color="primary">
+            UPI Payment QR Code
+          </Typography>
+          <IconButton size="small" onClick={() => setQrZoomOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider sx={{ mb: 3 }} />
+
+        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2, display: 'inline-block', mb: 2 }}>
+          {formData.paymentQrUrl ? (
+            <Box
+              component="img"
+              src={formData.paymentQrUrl}
+              alt="Enlarged Payment QR"
+              sx={{ width: 250, height: 250, objectFit: 'contain' }}
+            />
+          ) : formData.upiId ? (
+            <QRCodeSVG value={previewUpiUri} size={250} level="H" includeMargin={true} />
+          ) : null}
+        </Box>
+
+        {formData.upiId && (
+          <Typography variant="subtitle1" fontWeight="700" color="primary.main" gutterBottom>
+            {formData.upiId}
+          </Typography>
+        )}
+        <Typography variant="caption" color="text.secondary" display="block">
+          Scan with any UPI App (GPay, PhonePe, Paytm) to make payment. Click anywhere to close.
+        </Typography>
+      </Dialog>
 
       {/* Snackbar Notifications */}
       <Snackbar
