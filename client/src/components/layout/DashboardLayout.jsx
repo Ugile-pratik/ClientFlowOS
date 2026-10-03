@@ -195,7 +195,7 @@ const DashboardLayout = ({ children }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
           <Avatar
             alt={user?.fullName || 'User'}
-            src={""}
+            src={user?.profilePhotoUrl || ''}
             sx={{ width: 40, height: 40, bgcolor: 'primary.main', fontWeight: 600 }}
           >
             {user?.fullName ? user.fullName[0].toUpperCase() : 'P'}
@@ -356,6 +356,7 @@ const DashboardLayout = ({ children }) => {
               >
                 <Avatar
                   alt={user?.fullName || 'User'}
+                  src={user?.profilePhotoUrl || ''}
                   sx={{ width: 28, height: 28, bgcolor: 'primary.main', fontSize: '0.85rem' }}
                 >
                   {user?.fullName ? user.fullName[0].toUpperCase() : 'P'}

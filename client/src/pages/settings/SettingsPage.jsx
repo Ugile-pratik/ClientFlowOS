@@ -49,6 +49,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getSettings, updateSettings, changePassword } from '../../services/settingsService';
 import { uploadAvatarImage, uploadBannerImage, uploadQrImage } from '../../services/profileService';
 import { generateUpiUri } from '../../utils/upiQr';
+import { useAuth } from '../../context/AuthContext';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -60,6 +61,7 @@ function TabPanel(props) {
 }
 
 const SettingsPage = () => {
+  const { updateUser } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -141,6 +143,7 @@ const SettingsPage = () => {
     try {
       const res = await uploadAvatarImage(file);
       setFormData(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
+      if (updateUser) updateUser({ profilePhotoUrl: res.profilePhotoUrl });
       showSnackbar('Profile picture updated successfully!', 'success');
     } catch (err) {
       console.error('Avatar upload error:', err);
@@ -324,7 +327,7 @@ const SettingsPage = () => {
       </Box>
 
       {/* Tabs Navigation Header */}
-      <Paper elevation={1} sx={{ borderRadius: 2, mb: 1, bgcolor: '#ffffff' }}>
+      <Paper elevation={1} sx={{ borderRadius: 2, mb: 1, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -344,7 +347,7 @@ const SettingsPage = () => {
 
       {/* 1. Business Profile Tab */}
       <TabPanel value={tabValue} index={0}>
-        <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+        <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <BusinessIcon color="primary" sx={{ mr: 1 }} />
@@ -362,7 +365,7 @@ const SettingsPage = () => {
               <Grid container spacing={2.5}>
                 {/* Profile Media Section */}
                 <Grid item xs={12}>
-                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: '#f8fafc' }}>
+                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.8)', borderColor: 'divider' }}>
                     <Typography variant="subtitle2" fontWeight="700" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <PhotoCameraIcon fontSize="small" /> Profile Picture & Cover Banner
                     </Typography>
@@ -410,7 +413,8 @@ const SettingsPage = () => {
                               background: formData.coverBannerUrl
                                 ? `url(${formData.coverBannerUrl}) center/cover no-repeat`
                                 : 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                              border: '1px solid #cbd5e1'
+                              border: '1px solid',
+                              borderColor: 'divider'
                             }}
                           />
                           <Box>
@@ -521,7 +525,7 @@ const SettingsPage = () => {
           <Grid item xs={12} md={7}>
             <Stack spacing={3}>
               {/* Payment Information Card */}
-              <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+              <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <PaymentIcon color="primary" sx={{ mr: 1 }} />
@@ -562,7 +566,7 @@ const SettingsPage = () => {
               </Card>
 
               {/* Invoice Settings Card */}
-              <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+              <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <InvoiceIcon color="primary" sx={{ mr: 1 }} />
@@ -644,7 +648,7 @@ const SettingsPage = () => {
               </Card>
 
               {/* Invoice Branding Settings Card */}
-              <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+              <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" fontWeight="700" gutterBottom>
                     Invoice Branding & Display Options
@@ -712,7 +716,7 @@ const SettingsPage = () => {
 
           {/* Right Side: QR Code Preview & Upload */}
           <Grid item xs={12} md={5}>
-            <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+            <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
               <CardContent sx={{ p: 3, textAlign: 'center' }}>
                 <Typography variant="h6" fontWeight="700" align="left" gutterBottom>
                   Payment QR Code Preview
@@ -731,7 +735,8 @@ const SettingsPage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    bgcolor: '#f8fafc',
+                    bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.8)',
+                    borderColor: 'divider',
                     borderRadius: 2
                   }}
                 >
@@ -758,7 +763,8 @@ const SettingsPage = () => {
                                 height: 200,
                                 objectFit: 'contain',
                                 borderRadius: 2,
-                                border: '1px solid #e2e8f0',
+                                border: '1px solid',
+                                borderColor: 'divider',
                                 p: 1,
                                 bgcolor: '#ffffff'
                               }}
@@ -767,7 +773,7 @@ const SettingsPage = () => {
                         ) : (
                           <>
                             <Chip icon={<QrCodeIcon />} label="Auto-Generated UPI QR" color="success" size="small" sx={{ mb: 2 }} />
-                            <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #e2e8f0', display: 'inline-block' }}>
+                            <Box sx={{ p: 2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'inline-block' }}>
                               <QRCodeSVG value={previewUpiUri} size={180} level="H" includeMargin={true} />
                             </Box>
                             <Typography variant="subtitle2" sx={{ mt: 1, fontWeight: 700 }}>
@@ -820,7 +826,7 @@ const SettingsPage = () => {
       {/* 3. Security Tab */}
       <TabPanel value={tabValue} index={2}>
         <Stack spacing={3}>
-          <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+          <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
             <CardContent sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <LockIcon color="primary" sx={{ mr: 1 }} />
@@ -882,7 +888,7 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+          <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight="700" gutterBottom>
                 Account Verification & Session
@@ -904,7 +910,7 @@ const SettingsPage = () => {
 
       {/* 4. Notifications Tab */}
       <TabPanel value={tabValue} index={3}>
-        <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+        <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <NotificationsIcon color="primary" sx={{ mr: 1 }} />
@@ -971,7 +977,7 @@ const SettingsPage = () => {
 
       {/* 5. Preferences Tab */}
       <TabPanel value={tabValue} index={4}>
-        <Card elevation={2} sx={{ borderRadius: 2.5 }}>
+        <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
           <CardContent sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <PreferencesIcon color="primary" sx={{ mr: 1 }} />
@@ -1048,7 +1054,7 @@ const SettingsPage = () => {
         </Box>
         <Divider sx={{ mb: 3 }} />
 
-        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 2, display: 'inline-block', mb: 2 }}>
+        <Box sx={{ p: 2, bgcolor: '#ffffff', border: '1px solid', borderColor: 'divider', borderRadius: 2, display: 'inline-block', mb: 2 }}>
           {formData.paymentQrUrl ? (
             <Box
               component="img"

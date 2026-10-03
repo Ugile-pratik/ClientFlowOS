@@ -166,6 +166,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updatedData) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedData } : updatedData));
+  };
+
   const logout = () => {
     localStorage.removeItem('clientflow-token');
     setUser(null);
@@ -185,6 +189,7 @@ export const AuthProvider = ({ children }) => {
         forgotPassword,
         resetPassword,
         logout,
+        updateUser,
       }}
     >
       {children}

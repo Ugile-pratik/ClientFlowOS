@@ -51,8 +51,10 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { getProfile, updateProfile, uploadAvatarImage, uploadBannerImage, uploadQrImage } from '../../services/profileService';
 import { generateUpiUri } from '../../utils/upiQr';
+import { useAuth } from '../../context/AuthContext';
 
 const ProfilePage = () => {
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -188,6 +190,7 @@ const ProfilePage = () => {
       const res = await uploadAvatarImage(file);
       setProfile(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
       setFormData(prev => ({ ...prev, profilePhotoUrl: res.profilePhotoUrl }));
+      if (updateUser) updateUser({ profilePhotoUrl: res.profilePhotoUrl });
       showSnackbar('Profile picture updated successfully!', 'success');
     } catch (err) {
       console.error('Avatar upload error:', err);

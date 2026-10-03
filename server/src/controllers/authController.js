@@ -113,6 +113,8 @@ const login = async (req, res) => {
         id: user.id,
         fullName: user.fullName,
         email: user.email,
+        profilePhotoUrl: user.profilePhotoUrl,
+        coverBannerUrl: user.coverBannerUrl,
         createdAt: user.createdAt,
       },
     });
@@ -211,6 +213,8 @@ const getMe = async (req, res) => {
         id: true,
         fullName: true,
         email: true,
+        profilePhotoUrl: true,
+        coverBannerUrl: true,
         isVerified: true,
         createdAt: true,
         updatedAt: true,
