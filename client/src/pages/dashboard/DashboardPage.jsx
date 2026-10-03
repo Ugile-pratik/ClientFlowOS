@@ -17,9 +17,6 @@ import {
   TableRow,
   Chip,
   Skeleton,
-  SpeedDial,
-  SpeedDialAction,
-  SpeedDialIcon,
   Snackbar,
   Alert,
   useTheme,
@@ -170,13 +167,9 @@ const DashboardPage = () => {
   }
 
   const { stats, monthlyRevenue, recentClients, aiInsights } = data;
-  const upcomingDeadlines = [];
-  const recentProjects = [];
+  const upcomingDeadlines = data?.upcomingDeadlines || [];
+  const recentProjects = data?.recentProjects || [];
   const calendarEvents = (data?.calendarEvents || []).filter(e => e.date !== '2026-09-08' && !e.date?.endsWith('-09-08'));
-  if (stats) {
-    stats.activeProjects = 0;
-    stats.projectsDueThisWeek = 0;
-  }
   const isEmpty = stats.totalClients === 0;
 
   return (
@@ -648,22 +641,6 @@ const DashboardPage = () => {
           </Grid>
         </>
       )}
-
-      {/* 11. Quick Actions Floating Speed Dial */}
-      <SpeedDial
-        ariaLabel="Dashboard Quick Actions"
-        sx={{ position: 'fixed', bottom: 24, right: 24 }}
-        icon={<SpeedDialIcon />}
-      >
-        {quickActions.map((action) => (
-          <SpeedDialAction
-            key={action.name}
-            icon={action.icon}
-            tooltipTitle={action.name}
-            onClick={action.action}
-          />
-        ))}
-      </SpeedDial>
 
       {/* Snackbar notification */}
       <Snackbar

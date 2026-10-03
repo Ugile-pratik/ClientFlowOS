@@ -33,6 +33,7 @@ import {
   PeopleOutline as ClientsIcon,
   WorkOutline as ProjectsIcon,
   ReceiptOutlined as InvoicesIcon,
+  AccountBalanceWalletOutlined as PaymentsIcon,
   AutoAwesomeOutlined as InsightsIcon,
   PersonOutline as ProfileIcon,
   SettingsOutlined as SettingsIcon,
@@ -41,6 +42,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { useCustomTheme } from '../../context/ThemeContext';
+
+import NotificationPopover from '../notifications/NotificationPopover';
 
 const drawerWidth = 260;
 
@@ -82,7 +85,8 @@ const DashboardLayout = ({ children }) => {
     { text: 'Dashboard', path: '/', icon: <DashboardIcon /> },
     { text: 'Clients', path: '/clients', icon: <ClientsIcon /> },
     { text: 'Projects', path: '/projects', icon: <ProjectsIcon /> },
-    { text: 'Invoices & Payments', path: '/invoices', icon: <InvoicesIcon /> },
+    { text: 'Invoices', path: '/invoices', icon: <InvoicesIcon /> },
+    { text: 'Payments & Ledger', path: '/payments', icon: <PaymentsIcon /> },
     { text: 'AI Insights', path: '/ai-insights', icon: <InsightsIcon /> },
     { text: 'Profile', path: '/profile', icon: <ProfileIcon /> },
     { text: 'Settings', path: '/settings', icon: <SettingsIcon /> },
@@ -328,12 +332,8 @@ const DashboardLayout = ({ children }) => {
                 {mode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
               </IconButton>
 
-              {/* Notification Placeholder */}
-              <IconButton color="inherit" size="medium">
-                <Badge variant="dot" color="primary" overlap="circular" anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-                  <NotificationsIcon fontSize="small" />
-                </Badge>
-              </IconButton>
+              {/* Notification Popover */}
+              <NotificationPopover />
 
               <Divider orientation="vertical" variant="middle" flexItem sx={{ height: 20, mx: 0.5 }} />
 

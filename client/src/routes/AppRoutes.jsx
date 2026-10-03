@@ -15,6 +15,8 @@ import ProjectListPage from '../pages/projects/ProjectListPage';
 import ProjectDetailsPage from '../pages/projects/ProjectDetailsPage';
 import InvoiceListPage from '../pages/invoices/InvoiceListPage';
 import InvoiceDetailsPage from '../pages/invoices/InvoiceDetailsPage';
+import PaymentsPage from '../pages/payments/PaymentsPage';
+import AiInsightsPage from '../pages/ai-insights/AiInsightsPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 import SettingsPage from '../pages/settings/SettingsPage';
 import { Box, CircularProgress } from '@mui/material';
@@ -167,10 +169,18 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/payments"
+        element={
+          <PrivateRoute>
+            <PaymentsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/ai-insights"
         element={
           <PrivateRoute>
-            <PlaceholderPage />
+            <AiInsightsPage />
           </PrivateRoute>
         }
       />

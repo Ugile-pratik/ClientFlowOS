@@ -180,8 +180,15 @@ const getDashboardData = async (req, res) => {
       lastProject: '-'
     }));
 
-    // 7. Fetch recent projects (kept empty as projects are unbuilt)
-    const recentProjects = [];
+    // 7. Fetch recent projects
+    const recentProjects = projects.slice(0, 5).map(p => ({
+      id: p.id,
+      title: p.title,
+      clientName: p.client?.name || p.client?.company || 'N/A',
+      budget: p.budget,
+      dueDate: p.dueDate,
+      status: p.status
+    }));
 
     // 8. Generate calendar dates with events
     // Event dates represent project deadlines or invoice payment deadlines
@@ -342,8 +349,8 @@ const getDashboardData = async (req, res) => {
     const stats = {
       totalClients,
       clientsChange: clientsThisMonth > 0 ? `+${clientsThisMonth} this month` : 'No new clients this month',
-      activeProjects: 0,
-      projectsDueThisWeek: 0,
+      activeProjects: activeProjects.length,
+      projectsDueThisWeek: projectsDueThisWeek.length,
       pendingPaymentsAmount,
       pendingInvoicesCount,
       totalRevenue,

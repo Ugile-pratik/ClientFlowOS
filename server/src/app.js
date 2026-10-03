@@ -8,6 +8,9 @@ const projectRoutes = require('./routes/project.routes');
 const path = require('path');
 const invoiceRoutes = require('./routes/invoice.routes');
 const profileRoutes = require('./routes/profile.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const aiInsightRoutes = require('./routes/aiInsight.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 dotenv.config();
 
@@ -41,5 +44,14 @@ app.use('/api/invoices', invoiceRoutes);
 
 // Profile Routes
 app.use('/api/profile', profileRoutes);
+
+// Payment Routes
+app.use('/api/payments', paymentRoutes);
+
+// AI Insight Routes
+app.use('/api/ai-insights', aiInsightRoutes);
+
+// Notification Routes
+app.use('/api/notifications', notificationRoutes);
 
 module.exports = app;

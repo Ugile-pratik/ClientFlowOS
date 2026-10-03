@@ -96,16 +96,18 @@ model Client {
 }
 
 model Project {
-  id        Int      @id @default(autoincrement())
-  clientId  Int
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  title     String
-  budget    Float
-  dueDate   DateTime
-  status    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  invoices  Invoice[]
+  id                Int      @id @default(autoincrement())
+  clientId          Int
+  client            Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title             String
+  budget            Float
+  dueDate           DateTime
+  status            String
+  includedRevisions Int?     @default(2)
+  actualRevisions   Int?     @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  invoices          Invoice[]
 }
 
 model Invoice {
@@ -136,14 +138,22 @@ model Payment {
   paymentDate   DateTime @default(now())
   paymentMethod String
   referenceId   String?
-  notes         String?
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
 }
 
 model AI_Insight {
   id          Int      @id @default(autoincrement())
-  clientId    Int
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  userId      Int?
+  clientId    Int?
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   insightType String
+  title       String?
   message     String   @db.Text
+  severity    String?  @default("info")
+  whyData     Json?
+  actionData  Json?
+  isDismissed Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
