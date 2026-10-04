@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { generateInsights } = require('../ai/recommendationEngine');
+const aiInsightService = require('../services/aiInsight.service');
 
 /**
  * Fetch dashboard overview statistics and sections
@@ -225,112 +225,26 @@ const getDashboardData = async (req, res) => {
       });
     });
 
-    // 9. Generate AI recommendations & insights
+    // 9. Generate AI recommendations & insights using unified Phase 1 AI Insight Engine
     let aiInsights = [];
-    
-    // Fetch manual/saved insights from DB
-    const savedInsights = await prisma.aI_Insight.findMany({
-      where: {
-        client: { userId }
-      },
-      include: {
-        client: true
+    try {
+      const aiResult = await aiInsightService.getAiInsights(userId);
+      if (aiResult && aiResult.insights && aiResult.insights.length > 0) {
+        aiInsights = aiResult.insights.slice(0, 5).map(ins => ({
+          id: ins.id,
+          insightType: ins.severity === 'critical' || ins.severity === 'high' ? 'HIGH_RISK' : ins.type,
+          message: ins.summary || ins.title,
+          clientName: ins.title,
+          createdAt: ins.createdAt || new Date(),
+          title: ins.title,
+          severity: ins.severity,
+        }));
       }
-    });
+    } catch (aiErr) {
+      console.error('Error fetching dashboard AI insights:', aiErr);
+    }
 
-    aiInsights = savedInsights.map(insight => ({
-      id: insight.id,
-      insightType: insight.insightType,
-      message: insight.message,
-      clientName: insight.client.name,
-      createdAt: insight.createdAt
-    }));
-
-    // Generate dynamic rule-based insights if there is data
-    if (totalClients > 0) {
-      // Rule A: Overdue Invoices
-      invoices.forEach(inv => {
-        const dueDate = new Date(inv.dueDate);
-        if (inv.status.toLowerCase() !== 'paid' && dueDate < today) {
-          const delayDays = Math.ceil((today - dueDate) / (1000 * 60 * 60 * 24));
-          aiInsights.push({
-            id: `dyn-overdue-${inv.id}`,
-            insightType: 'HIGH_RISK',
-            message: `Invoice #${inv.invoiceNumber} for ${inv.project.client.name} is ${delayDays} days overdue (₹${inv.amount.toLocaleString()}). Send a friendly reminder.`,
-            clientName: inv.project.client.name,
-            createdAt: new Date()
-          });
-        }
-      });
-
-      // Rule B: Project deadline nearing
-      activeProjects.forEach(proj => {
-        const dueDate = new Date(proj.dueDate);
-        const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-        if (diffDays > 0 && diffDays <= 3) {
-          aiInsights.push({
-            id: `dyn-deadline-${proj.id}`,
-            insightType: 'DEADLINE_NEAR',
-            message: `Project "${proj.title}" is due in ${diffDays} days. Ensure milestones are aligned.`,
-            clientName: proj.client.name,
-            createdAt: new Date()
-          });
-        }
-      });
-
-      // Rule C: Evaluate clients using AI Recommendation Engine
-      for (const client of clients) {
-        const clientInvoices = invoices.filter(i => i.project.clientId === client.id);
-        const unpaidCount = clientInvoices.filter(i => i.status.toLowerCase() !== 'paid').length;
-        
-        // Calculate average payment delay
-        const clientPayments = payments.filter(p => p.invoice.project.clientId === client.id);
-        let averageDelay = 0;
-        if (clientPayments.length > 0) {
-          let totalDelayDays = 0;
-          clientPayments.forEach(p => {
-            const payDate = new Date(p.paymentDate);
-            const dueDate = new Date(p.invoice.dueDate);
-            const delay = Math.max(0, Math.ceil((payDate - dueDate) / (1000 * 60 * 60 * 24)));
-            totalDelayDays += delay;
-          });
-          averageDelay = totalDelayDays / clientPayments.length;
-        }
-
-        // Mock revision count as 6 if they have lots of unpaid invoices to trigger the mock rule
-        const revisionCount = unpaidCount > 2 ? 6 : 2;
-
-        // Is this the highest earning client?
-        const clientTotalEarnings = clientPayments.reduce((sum, p) => sum + p.amountPaid, 0);
-        let isHighestEarner = false;
-        if (clientTotalEarnings > 0) {
-          const allClientsEarnings = clients.map(c => {
-            const cPays = payments.filter(p => p.invoice.project.clientId === c.id);
-            return cPays.reduce((sum, p) => sum + p.amountPaid, 0);
-          });
-          const maxEarnings = Math.max(...allClientsEarnings);
-          isHighestEarner = clientTotalEarnings === maxEarnings;
-        }
-
-        const engineInsights = generateInsights({
-          averageDelayDays: averageDelay,
-          revisionCount,
-          unpaidInvoicesCount: unpaidCount,
-          isHighestEarner
-        });
-
-        engineInsights.forEach((ins, idx) => {
-          aiInsights.push({
-            id: `dyn-engine-${client.id}-${idx}`,
-            insightType: ins.insightType,
-            message: ins.message,
-            clientName: client.name,
-            createdAt: new Date()
-          });
-        });
-      }
-    } else {
-      // Welcome onboarding insights
+    if (aiInsights.length === 0) {
       aiInsights.push({
         id: 'dyn-welcome-1',
         insightType: 'ONBOARDING',
@@ -339,11 +253,6 @@ const getDashboardData = async (req, res) => {
         createdAt: new Date()
       });
     }
-
-    // Deduplicate dynamic insights and slice to limit
-    const uniqueInsightsMap = new Map();
-    aiInsights.forEach(ins => uniqueInsightsMap.set(ins.message, ins));
-    const finalInsights = Array.from(uniqueInsightsMap.values()).slice(0, 5);
 
     // 10. Combine statistics
     const stats = {
@@ -364,7 +273,7 @@ const getDashboardData = async (req, res) => {
       recentClients: formattedRecentClients,
       recentProjects,
       calendarEvents: calendarEvents.filter(e => e.date !== '2026-09-08' && !e.date?.endsWith('-09-08')),
-      aiInsights: finalInsights
+      aiInsights: aiInsights
     });
 
   } catch (error) {

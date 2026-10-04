@@ -12,11 +12,8 @@ import {
   Button,
   Chip,
   Divider,
-  CircularProgress,
   Tabs,
-  Tab,
-  Paper,
-  Tooltip
+  Tab
 } from '@mui/material';
 import {
   NotificationsNone as BellIcon,
@@ -30,19 +27,52 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
-const NotificationPopover = ({ onOpenPaymentModal }) => {
+const READ_STORAGE_KEY = 'clientflow_read_notifications';
+
+const NotificationPopover = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('ALL');
+
+  // Helper to read stored read notification IDs from localStorage
+  const getReadNotificationIds = () => {
+    try {
+      const stored = localStorage.getItem(READ_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Helper to persist read notification IDs to localStorage
+  const saveReadNotificationIds = (idsToMark) => {
+    try {
+      const existing = getReadNotificationIds();
+      const updated = Array.from(new Set([...existing, ...idsToMark]));
+      localStorage.setItem(READ_STORAGE_KEY, JSON.stringify(updated));
+    } catch (err) {
+      console.error('Failed to save read notification IDs:', err);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
       const response = await api.get('/notifications');
-      setNotifications(response.data.notifications || []);
-      setUnreadCount(response.data.unreadCount || 0);
+      const rawList = response.data.notifications || [];
+      const readIds = getReadNotificationIds();
+
+      // Merge backend list with locally saved read status
+      const updatedList = rawList.map((notif) => ({
+        ...notif,
+        read: Boolean(notif.read || readIds.includes(notif.id)),
+      }));
+
+      const unread = updatedList.filter((n) => !n.read).length;
+
+      setNotifications(updatedList);
+      setUnreadCount(unread);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
     }
@@ -50,14 +80,20 @@ const NotificationPopover = ({ onOpenPaymentModal }) => {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll every 60 seconds to keep live notifications updated
-    const interval = setInterval(fetchNotifications, 60000);
+    const interval = setInterval(fetchNotifications, 60000); // 60s poll
     return () => clearInterval(interval);
   }, []);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
-    fetchNotifications();
+
+    // Automatically mark all current notifications as seen/read when opening popover!
+    if (notifications.length > 0) {
+      const allIds = notifications.map((n) => n.id);
+      saveReadNotificationIds(allIds);
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+    }
   };
 
   const handleClose = () => {
@@ -65,6 +101,8 @@ const NotificationPopover = ({ onOpenPaymentModal }) => {
   };
 
   const handleMarkAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    saveReadNotificationIds(allIds);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setUnreadCount(0);
   };
@@ -230,6 +268,7 @@ const NotificationPopover = ({ onOpenPaymentModal }) => {
                               variant="text"
                               color="primary"
                               onClick={() => {
+                                saveReadNotificationIds([notif.id]);
                                 handleClose();
                                 if (notif.action?.route) {
                                   navigate(notif.action.route);
@@ -255,7 +294,7 @@ const NotificationPopover = ({ onOpenPaymentModal }) => {
         {/* Footer info banner */}
         <Box sx={{ p: 1.2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider', bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(15,23,42,0.5)' : 'rgba(241,245,249,0.5)' }}>
           <Typography variant="caption" color="text.secondary">
-            ⚡ Retains activity from last 14 days • Memory optimized
+            Activity retained from last 14 days 
           </Typography>
         </Box>
       </Popover>

@@ -75,10 +75,11 @@ const AiInsightsPage = () => {
 
   const getSeverityConfig = (severity) => {
     switch (severity) {
+      case 'critical':
       case 'high':
         return {
           color: 'error',
-          badgeText: '🔴 Payment Risk',
+          badgeText: severity === 'critical' ? '🔴 Critical Risk' : '🔴 Payment Risk',
           icon: <RiskIcon fontSize="small" />,
           borderColor: 'error.main',
           bgColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(254, 242, 242, 0.8)',
@@ -93,6 +94,7 @@ const AiInsightsPage = () => {
           bgColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(254, 243, 199, 0.7)',
         };
       case 'success':
+      case 'low':
         return {
           color: 'success',
           badgeText: '🟢 High-Value Client',
@@ -121,10 +123,18 @@ const AiInsightsPage = () => {
 
   const filteredInsights = insights.filter((item) => {
     if (activeTab === 'ALL') return true;
-    if (activeTab === 'RISK') return item.severity === 'high';
-    if (activeTab === 'PATTERN') return item.severity === 'warning' || item.severity === 'medium';
-    if (activeTab === 'GROWTH') return item.severity === 'success';
-    if (activeTab === 'RECOMMENDATIONS') return item.severity === 'recommendation';
+    if (activeTab === 'RISK') {
+      return item.category === 'Payment Risk' || item.type === 'PAYMENT_RISK' || item.type === 'SERIOUS_OVERDUE_RISK' || item.severity === 'critical' || item.severity === 'high';
+    }
+    if (activeTab === 'PATTERN') {
+      return (item.category === 'Client Behavior' || item.category === 'Business Risk' || item.type === 'CLIENT_PAYMENT_PATTERN' || item.type === 'REVENUE_CONCENTRATION' || item.type === 'OUTSTANDING_CONCENTRATION' || item.severity === 'warning' || item.severity === 'medium') && item.category !== 'Payment Risk' && item.type !== 'PAYMENT_RISK';
+    }
+    if (activeTab === 'GROWTH') {
+      return item.category === 'Revenue Growth' || item.category === 'Business Analytics' || item.type === 'HIGH_VALUE_CLIENT' || item.type === 'REVENUE_TREND' || item.severity === 'success';
+    }
+    if (activeTab === 'RECOMMENDATIONS') {
+      return item.category === 'Smart Recommendation' || item.type === 'ADVANCE_PAYMENT_RECOMMENDATION' || item.type === 'REVISION_CHARGE_RECOMMENDATION' || item.severity === 'recommendation';
+    }
     return true;
   });
 
