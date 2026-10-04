@@ -12,25 +12,33 @@ import {
   LinearProgress, 
   Alert, 
   Snackbar, 
-  CircularProgress 
+  CircularProgress,
+  Paper
 } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const RegisterPage = () => {
-  const { register } = useAuth();
+  const { register, verifyEmail, resendCode } = useAuth();
   const navigate = useNavigate();
+
+  // Wizard Step: 1 = Signup Form, 2 = 6-Digit Code Verification
+  const [step, setStep] = useState(1);
 
   // Inputs
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otpCode, setOtpCode] = useState('');
 
   // UI state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   
   // Validation / Message alerts
   const [validationError, setValidationError] = useState('');
@@ -47,13 +55,13 @@ const RegisterPage = () => {
 
     switch (score) {
       case 1:
-        return { value: 25, label: 'Weak', color: '#EF4444' }; // Red
+        return { value: 25, label: 'Weak', color: '#EF4444' };
       case 2:
-        return { value: 50, label: 'Fair', color: '#F59E0B' }; // Orange
+        return { value: 50, label: 'Fair', color: '#F59E0B' };
       case 3:
-        return { value: 75, label: 'Good', color: '#3B82F6' }; // Blue
+        return { value: 75, label: 'Good', color: '#3B82F6' };
       case 4:
-        return { value: 100, label: 'Strong', color: '#10B981' }; // Green
+        return { value: 100, label: 'Strong', color: '#10B981' };
       default:
         return { value: 0, label: '', color: 'grey.300' };
     }
@@ -61,11 +69,11 @@ const RegisterPage = () => {
 
   const strength = checkPasswordStrength(password);
 
+  // Step 1: Submit Registration & Request 6-Digit Code
   const handleRegister = async (e) => {
     e.preventDefault();
     setValidationError('');
 
-    // Pre-flight check
     if (!fullName.trim()) {
       setValidationError('Full Name is required.');
       return;
@@ -87,128 +95,236 @@ const RegisterPage = () => {
     setSubmitting(true);
     try {
       const response = await register(fullName, email, password);
-      setSnackbar({ open: true, message: response.message, severity: 'success' });
-      // Redirect to login after a brief delay
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      setSnackbar({ open: true, message: response.message || '6-digit verification code sent to your email!', severity: 'success' });
+      setStep(2); // Transition to 6-digit OTP code verification step
     } catch (err) {
       setValidationError(err.message || 'An error occurred during registration.');
+    } finally {
       setSubmitting(false);
     }
   };
 
+  // Step 2: Verify 6-Digit OTP Code
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setValidationError('');
+
+    const cleanCode = otpCode.trim();
+    if (!cleanCode || cleanCode.length !== 6) {
+      setValidationError('Please enter the complete 6-digit verification code.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await verifyEmail(cleanCode, email);
+      setSnackbar({ open: true, message: response.message || 'Email verified successfully!', severity: 'success' });
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err) {
+      setValidationError(err.message || 'Invalid or expired 6-digit code.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Resend 6-Digit OTP Code
+  const handleResendCode = async () => {
+    setResending(true);
+    setValidationError('');
+    try {
+      const response = await resendCode(email);
+      setSnackbar({ open: true, message: response.message || 'New 6-digit code sent!', severity: 'info' });
+    } catch (err) {
+      setValidationError(err.message || 'Failed to resend code.');
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
-    <AuthLayout title="Create an account" subtitle="Get started with ClientFlow today.">
-      <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {validationError && (
-          <Alert severity="error" variant="outlined" sx={{ borderRadius: 2 }}>
-            {validationError}
-          </Alert>
-        )}
+    <AuthLayout
+      title={step === 1 ? 'Create an account' : 'Verify Email Code'}
+      subtitle={step === 1 ? 'Get started with ClientFlow today.' : `Enter the 6-digit code sent to ${email}`}
+    >
+      {step === 1 ? (
+        /* STEP 1: REGISTRATION FORM */
+        <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          {validationError && (
+            <Alert severity="error" variant="outlined" sx={{ borderRadius: 2 }}>
+              {validationError}
+            </Alert>
+          )}
 
-        <TextField
-          label="Full Name"
-          variant="outlined"
-          fullWidth
-          required
-          disabled={submitting}
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-        />
+          <TextField
+            label="Full Name"
+            variant="outlined"
+            fullWidth
+            required
+            disabled={submitting}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
 
-        <TextField
-          label="Email Address"
-          type="email"
-          variant="outlined"
-          fullWidth
-          required
-          disabled={submitting}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          <TextField
+            label="Email Address"
+            type="email"
+            variant="outlined"
+            fullWidth
+            required
+            disabled={submitting}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <TextField
-          label="Password"
-          type={showPassword ? 'text' : 'password'}
-          variant="outlined"
-          fullWidth
-          required
-          disabled={submitting}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+          <TextField
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            variant="outlined"
+            fullWidth
+            required
+            disabled={submitting}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
 
-        {password && (
-          <Box sx={{ mt: -0.5 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
-              <Typography variant="caption" sx={{ color: strength.color, fontWeight: 700 }}>
-                {strength.label}
-              </Typography>
+          {password && (
+            <Box sx={{ mt: -0.5 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
+                <Typography variant="caption" sx={{ color: strength.color, fontWeight: 700 }}>
+                  {strength.label}
+                </Typography>
+              </Box>
+              <LinearProgress 
+                variant="determinate" 
+                value={strength.value} 
+                sx={{ 
+                  height: 6, 
+                  borderRadius: 3, 
+                  bgcolor: 'divider',
+                  '& .MuiLinearProgress-bar': {
+                    bgcolor: strength.color,
+                  }
+                }} 
+              />
             </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={strength.value} 
-              sx={{ 
-                height: 6, 
-                borderRadius: 3, 
-                bgcolor: 'divider',
-                '& .MuiLinearProgress-bar': {
-                  bgcolor: strength.color,
-                }
-              }} 
-            />
+          )}
+
+          <TextField
+            label="Confirm Password"
+            type={showConfirmPassword ? 'text' : 'password'}
+            variant="outlined"
+            fullWidth
+            required
+            disabled={submitting}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={submitting}
+            sx={{ height: 48, fontWeight: 700 }}
+          >
+            {submitting ? <CircularProgress size={24} color="inherit" /> : 'Send 6-Digit Code'}
+          </Button>
+
+          <Typography variant="body2" color="text.secondary" align="center">
+            Already have an account?{' '}
+            <Link to="/login" style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}>
+              Log in
+            </Link>
+          </Typography>
+        </Box>
+      ) : (
+        /* STEP 2: 6-DIGIT OTP CODE VERIFICATION FORM */
+        <Box component="form" onSubmit={handleVerifyCode} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {validationError && (
+            <Alert severity="error" variant="outlined" sx={{ borderRadius: 2 }}>
+              {validationError}
+            </Alert>
+          )}
+
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center', bgcolor: 'background.paper' }}>
+            <MarkEmailReadIcon sx={{ fontSize: 44, color: 'primary.main', mb: 1 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Check your Inbox
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              We've dispatched a 6-digit code to <strong>{email}</strong>. It remains valid for 10 minutes.
+            </Typography>
+          </Paper>
+
+          <TextField
+            label="6-Digit Verification Code"
+            placeholder="e.g. 584920"
+            variant="outlined"
+            fullWidth
+            required
+            autoFocus
+            disabled={submitting}
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
+            inputProps={{
+              maxLength: 6,
+              style: { textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.4rem', fontWeight: 700 }
+            }}
+          />
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={submitting || otpCode.length !== 6}
+            sx={{ height: 48, fontWeight: 700 }}
+          >
+            {submitting ? <CircularProgress size={24} color="inherit" /> : 'Verify Code & Activate Account'}
+          </Button>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1 }}>
+            <Button
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => setStep(1)}
+              sx={{ textTransform: 'none', color: 'text.secondary' }}
+            >
+              Back to Sign Up
+            </Button>
+            <Button
+              size="small"
+              onClick={handleResendCode}
+              disabled={resending}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              {resending ? 'Resending...' : 'Resend Code'}
+            </Button>
           </Box>
-        )}
-
-        <TextField
-          label="Confirm Password"
-          type={showConfirmPassword ? 'text' : 'password'}
-          variant="outlined"
-          fullWidth
-          required
-          disabled={submitting}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end">
-                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          fullWidth
-          disabled={submitting}
-          sx={{ height: 48, fontWeight: 700 }}
-        >
-          {submitting ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
-        </Button>
-
-        <Typography variant="body2" color="text.secondary" align="center">
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}>
-            Log in
-          </Link>
-        </Typography>
-      </Box>
+        </Box>
+      )}
 
       <Snackbar
         open={snackbar.open}

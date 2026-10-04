@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
       (response) => response,
       (err) => {
         if (err.response && err.response.status === 401) {
-          // Token is invalid or expired
           logout();
         }
         return Promise.reject(err);
@@ -53,7 +52,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Restore mock session immediately without requesting backend
+      // Restore mock session immediately for testing
       if (token === 'mock-jwt-token-for-local-testing') {
         setUser({
           id: 999,
@@ -96,22 +95,13 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      console.log('[AuthContext] Sending POST to /api/auth/login with email:', email);
       const response = await axios.post('/api/auth/login', { email, password });
-      console.log('[AuthContext] Received login response:', response.data);
       const { token, user: loggedUser } = response.data;
 
       localStorage.setItem('clientflow-token', token);
       setUser(loggedUser);
       return { success: true, message: response.data.message };
     } catch (err) {
-      console.error('[AuthContext] Axios login request failed:', err);
-      if (err.response) {
-        console.error('[AuthContext] Error response status:', err.response.status);
-        console.error('[AuthContext] Error response data:', err.response.data);
-      } else {
-        console.error('[AuthContext] Network or CORS error (no response received)');
-      }
       const errMsg = err.response?.data?.error || 'An error occurred during login.';
       setError(errMsg);
       throw new Error(errMsg);
@@ -122,7 +112,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post('/api/auth/register', { fullName, email, password });
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message, email: response.data.email || email };
     } catch (err) {
       const errMsg = err.response?.data?.error || 'An error occurred during registration.';
       setError(errMsg);
@@ -130,13 +120,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const verifyEmail = async (token) => {
+  const resendCode = async (email) => {
     setError(null);
     try {
-      const response = await axios.post('/api/auth/verify-email', { token });
+      const response = await axios.post('/api/auth/resend-code', { email });
       return { success: true, message: response.data.message };
     } catch (err) {
-      const errMsg = err.response?.data?.error || 'Failed to verify email.';
+      const errMsg = err.response?.data?.error || 'Failed to resend verification code.';
+      setError(errMsg);
+      throw new Error(errMsg);
+    }
+  };
+
+  const verifyEmail = async (code, email = null) => {
+    setError(null);
+    try {
+      const response = await axios.post('/api/auth/verify-email', { code, token: code, email });
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      const errMsg = err.response?.data?.error || 'Failed to verify 6-digit code.';
       setError(errMsg);
       throw new Error(errMsg);
     }
@@ -146,18 +148,18 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post('/api/auth/forgot-password', { email });
-      return { success: true, message: response.data.message };
+      return { success: true, message: response.data.message, email: response.data.email || email };
     } catch (err) {
-      const errMsg = err.response?.data?.error || 'Failed to send password reset request.';
+      const errMsg = err.response?.data?.error || 'Failed to send password reset code.';
       setError(errMsg);
       throw new Error(errMsg);
     }
   };
 
-  const resetPassword = async (token, password) => {
+  const resetPassword = async (code, password, email = null) => {
     setError(null);
     try {
-      const response = await axios.post('/api/auth/reset-password', { token, password });
+      const response = await axios.post('/api/auth/reset-password', { code, token: code, password, email });
       return { success: true, message: response.data.message };
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Failed to reset password.';
@@ -185,6 +187,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         register,
+        resendCode,
         verifyEmail,
         forgotPassword,
         resetPassword,
