@@ -141,17 +141,17 @@ const AiInsightsPage = () => {
   return (
     <Box>
       {/* Header Banner */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
             <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'primary.main', color: 'white', display: 'flex' }}>
               <AiIcon />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px', fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2.125rem' } }}>
               AI Business Insights
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
             Rule-based explainable analytics and recommendations generated from your actual invoices, payments, and client history.
           </Typography>
         </Box>
@@ -160,7 +160,7 @@ const AiInsightsPage = () => {
           color="primary"
           startIcon={<AiIcon />}
           onClick={fetchInsights}
-          sx={{ borderRadius: 2.5, px: 2.5 }}
+          sx={{ borderRadius: 2.5, px: 2.5, py: 1, width: { xs: '100%', sm: 'auto' } }}
         >
           Refresh Insights
         </Button>
@@ -169,41 +169,41 @@ const AiInsightsPage = () => {
       {/* Summary KPI Cards */}
       <Grid container spacing={2.5} sx={{ mb: 4 }}>
         <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary" display="block">
+          <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               Payment Risk Alerts
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main', mt: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main', mt: 0.5, fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2rem' } }}>
               {summary.highRiskCount || 0}
             </Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary" display="block">
+          <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               Warnings & Patterns
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'warning.main', mt: 0.5, fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2rem' } }}>
               {summary.warningCount || 0}
             </Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary" display="block">
+          <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               High-Value Clients
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', mt: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', mt: 0.5, fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2rem' } }}>
               {summary.growthCount || 0}
             </Typography>
           </Paper>
         </Grid>
         <Grid item xs={6} sm={3}>
-          <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-            <Typography variant="caption" color="text.secondary" display="block">
+          <Paper elevation={0} sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
               Smart Recommendations
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.5, fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2rem' } }}>
               {summary.recommendationsCount || 0}
             </Typography>
           </Paper>
@@ -271,9 +271,9 @@ const AiInsightsPage = () => {
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* Header: Chip Badge */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                       <Chip
                         icon={config.icon}
                         label={config.badgeText}
@@ -287,7 +287,7 @@ const AiInsightsPage = () => {
                     </Box>
 
                     {/* Title & Summary */}
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, lineHeight: 1.3 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, lineHeight: 1.3, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {insight.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
@@ -299,7 +299,7 @@ const AiInsightsPage = () => {
                       <Paper
                         elevation={0}
                         sx={{
-                          p: 2,
+                          p: { xs: 1.5, sm: 2 },
                           mb: 2.5,
                           borderRadius: 2.5,
                           bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.8)',
@@ -325,11 +325,11 @@ const AiInsightsPage = () => {
                     )}
 
                     {/* Action Triggers */}
-                    <Box sx={{ mt: 'auto', pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    <Box sx={{ mt: 'auto', pt: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', flex: '1 1 100%', mb: { xs: 0.5, sm: 0 } }}>
                         {insight.suggestedAction}
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
                         {insight.actions && insight.actions.map((act, idx) => (
                           <Button
                             key={idx}
@@ -344,7 +344,7 @@ const AiInsightsPage = () => {
                               }
                             }}
                             endIcon={<ArrowIcon fontSize="small" />}
-                            sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none' }}
+                            sx={{ borderRadius: 2, fontWeight: 600, textTransform: 'none', flex: { xs: 1, sm: 'none' } }}
                           >
                             {act.label}
                           </Button>

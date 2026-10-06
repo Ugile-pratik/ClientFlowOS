@@ -177,7 +177,7 @@ const DashboardPage = () => {
       {/* 3. Welcome Banner */}
       <Card
         sx={{
-          p: { xs: 3, md: 4 },
+          p: { xs: 2.5, sm: 3, md: 4 },
           position: 'relative',
           overflow: 'hidden',
           background: theme.palette.mode === 'dark' 
@@ -190,10 +190,10 @@ const DashboardPage = () => {
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={8}>
             <Box sx={{ relative: 1 }}>
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.5px' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, letterSpacing: '-0.5px', fontSize: { xs: '1.4rem', sm: '1.75rem', md: '2.125rem' } }}>
                 {getGreeting()}, {user?.fullName || 'Pratik'} 👋
               </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+              <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                 Manage your freelance business from one place.
               </Typography>
             </Box>
@@ -234,18 +234,18 @@ const DashboardPage = () => {
               }
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Total Clients
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
                 {stats.totalClients}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 {stats.clientsChange}
               </Typography>
             </Box>
-            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)', color: 'primary.main', width: 48, height: 48 }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)', color: 'primary.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 }, ml: 1 }}>
               <ClientsIcon />
             </Avatar>
           </Card>
@@ -255,7 +255,7 @@ const DashboardPage = () => {
           <Card
             onClick={() => navigate('/projects')}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 2.5, md: 3 },
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -268,18 +268,18 @@ const DashboardPage = () => {
               }
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Active Projects
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
                 {stats.activeProjects || 0}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 {stats.projectsDueThisWeek || 0} due this week
               </Typography>
             </Box>
-            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)', color: 'primary.main', width: 48, height: 48 }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(37,99,235,0.1)' : 'rgba(37,99,235,0.05)', color: 'primary.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 }, ml: 1 }}>
               <ProjectsIcon />
             </Avatar>
           </Card>
@@ -289,7 +289,7 @@ const DashboardPage = () => {
           <Card
             onClick={() => navigate('/invoices')}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 2.5, md: 3 },
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -302,18 +302,18 @@ const DashboardPage = () => {
               }
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Pending Payments
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {formatCurrency(stats.pendingPaymentsAmount)}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                 {stats.pendingInvoicesCount} invoices pending
               </Typography>
             </Box>
-            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(217,119,6,0.1)' : 'rgba(217,119,6,0.05)', color: 'warning.main', width: 48, height: 48 }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(217,119,6,0.1)' : 'rgba(217,119,6,0.05)', color: 'warning.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 }, ml: 1 }}>
               <InvoicesIcon />
             </Avatar>
           </Card>
@@ -323,7 +323,7 @@ const DashboardPage = () => {
           <Card
             onClick={() => navigate('/invoices')}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 2.5, md: 3 },
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -336,18 +336,18 @@ const DashboardPage = () => {
               }
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5 }}>
                 Total Revenue
               </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5, fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {formatCurrency(stats.totalRevenue)}
               </Typography>
               <Typography variant="caption" color="success.main" sx={{ display: 'block', fontWeight: 600 }}>
                 {stats.revenueChange}
               </Typography>
             </Box>
-            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(5,150,105,0.1)' : 'rgba(5,150,105,0.05)', color: 'success.main', width: 48, height: 48 }}>
+            <Avatar sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(5,150,105,0.1)' : 'rgba(5,150,105,0.05)', color: 'success.main', width: { xs: 40, sm: 48 }, height: { xs: 40, sm: 48 }, ml: 1 }}>
               <RevenueIcon />
             </Avatar>
           </Card>
@@ -537,8 +537,8 @@ const DashboardPage = () => {
                   </Button>
                 </Box>
 
-                <TableContainer>
-                  <Table size="small" aria-label="recent clients table">
+                <TableContainer sx={{ overflowX: 'auto' }}>
+                  <Table size="small" aria-label="recent clients table" sx={{ minWidth: 450 }}>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 600, pl: 0 }}>Client</TableCell>

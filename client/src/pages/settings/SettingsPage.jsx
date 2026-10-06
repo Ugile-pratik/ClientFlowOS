@@ -315,12 +315,13 @@ const SettingsPage = () => {
   });
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 2.5, sm: 3, md: 4 }, px: { xs: 2, sm: 3, md: 4 } }}>
+      {/* Header Banner */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight="800" gutterBottom>
+        <Typography variant="h4" fontWeight="800" gutterBottom sx={{ fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2.125rem' } }}>
           Account & Application Settings
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           Configure business details, payment QR codes, invoice templates, security settings, and notifications.
         </Typography>
       </Box>
@@ -363,7 +364,7 @@ const SettingsPage = () => {
               <Grid container spacing={2.5}>
                 {/* Profile Media Section */}
                 <Grid item xs={12}>
-                  <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.8)', borderColor: 'divider' }}>
+                  <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: 2, bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.5)' : 'rgba(248, 250, 252, 0.8)', borderColor: 'divider' }}>
                     <Typography variant="subtitle2" fontWeight="700" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <PhotoCameraIcon fontSize="small" /> Profile Picture & Cover Banner
                     </Typography>
@@ -371,7 +372,7 @@ const SettingsPage = () => {
                     <Grid container spacing={3} alignItems="center" sx={{ mt: 0.5 }}>
                       {/* Avatar Upload Box */}
                       <Grid item xs={12} sm={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                           <Avatar
                             src={formData.profilePhotoUrl || ''}
                             sx={{ width: 64, height: 64, bgcolor: 'primary.main', fontSize: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
@@ -401,7 +402,7 @@ const SettingsPage = () => {
 
                       {/* Cover Banner Upload Box */}
                       <Grid item xs={12} sm={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                           <Box
                             sx={{
                               width: 100,
@@ -506,6 +507,7 @@ const SettingsPage = () => {
                     size="large"
                     startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                     disabled={saving}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
                   >
                     Save Business Profile
                   </Button>
@@ -703,6 +705,7 @@ const SettingsPage = () => {
                       startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
                       onClick={handleSaveSettings}
                       disabled={saving}
+                      sx={{ width: { xs: '100%', sm: 'auto' } }}
                     >
                       Save Payment & Invoicing Settings
                     </Button>
@@ -965,7 +968,7 @@ const SettingsPage = () => {
             </Stack>
 
             <Box sx={{ mt: 3 }}>
-              <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveSettings} disabled={saving}>
+              <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveSettings} disabled={saving} sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 Save Notification Preferences
               </Button>
             </Box>

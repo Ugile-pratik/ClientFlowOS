@@ -114,12 +114,12 @@ const PaymentsPage = () => {
   return (
     <Box>
       {/* Header Banner */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px' }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.5px', fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2.125rem' } }}>
             Payments & Transactions
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
             Audit trail of recorded client payments, transaction reference IDs, and financial summary.
           </Typography>
         </Box>
@@ -127,7 +127,7 @@ const PaymentsPage = () => {
           variant="contained"
           startIcon={<InvoiceIcon />}
           onClick={() => navigate('/invoices')}
-          sx={{ borderRadius: 2.5, px: 3, fontWeight: 600 }}
+          sx={{ borderRadius: 2.5, px: 3, py: 1.2, fontWeight: 600, width: { xs: '100%', sm: 'auto' } }}
         >
           View Invoices
         </Button>
@@ -137,7 +137,7 @@ const PaymentsPage = () => {
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Total Revenue Received
@@ -146,7 +146,7 @@ const PaymentsPage = () => {
                   <RevenueIcon fontSize="small" />
                 </Box>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'success.main', fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 ₹{(summary.totalReceived || 0).toLocaleString()}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -158,7 +158,7 @@ const PaymentsPage = () => {
 
         <Grid item xs={12} sm={6} md={3}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Outstanding Balance
@@ -167,7 +167,7 @@ const PaymentsPage = () => {
                   <PendingIcon fontSize="small" />
                 </Box>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'warning.main' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'warning.main', fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 ₹{(summary.totalOutstanding || 0).toLocaleString()}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -179,7 +179,7 @@ const PaymentsPage = () => {
 
         <Grid item xs={12} sm={6} md={3}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Overdue Payments
@@ -188,7 +188,7 @@ const PaymentsPage = () => {
                   <OverdueIcon fontSize="small" />
                 </Box>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'error.main', fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 ₹{(summary.totalOverdue || 0).toLocaleString()}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -200,7 +200,7 @@ const PaymentsPage = () => {
 
         <Grid item xs={12} sm={6} md={3}>
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="subtitle2" color="text.secondary">
                   Total Ledger Records
@@ -209,7 +209,7 @@ const PaymentsPage = () => {
                   <WalletIcon fontSize="small" />
                 </Box>
               </Box>
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, fontSize: { xs: '1.35rem', sm: '1.6rem', md: '1.85rem' } }}>
                 {payments.length}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
@@ -285,7 +285,7 @@ const PaymentsPage = () => {
             </Typography>
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto' }}>
             <Table sx={{ minWidth: 700 }}>
               <TableHead sx={{ bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(30, 41, 59, 0.4)' : 'rgba(241, 245, 249, 0.6)' }}>
                 <TableRow>

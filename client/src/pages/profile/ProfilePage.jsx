@@ -327,12 +327,12 @@ const ProfilePage = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 2.5, sm: 3, md: 4 }, px: { xs: 2, sm: 3, md: 4 } }}>
       {/* 1. Full Cover Background Header Profile Card */}
       <Paper
         elevation={3}
         sx={{
-          p: { xs: 3, md: 4 },
+          p: { xs: 2.5, sm: 3, md: 4 },
           mb: 4,
           borderRadius: 3,
           position: 'relative',
@@ -357,16 +357,17 @@ const ProfilePage = () => {
             startIcon={uploadingBanner ? <CircularProgress size={16} color="inherit" /> : <PhotoCameraIcon fontSize="small" />}
             sx={{
               position: 'absolute',
-              top: 16,
-              right: 16,
+              top: { xs: 12, sm: 16 },
+              right: { xs: 12, sm: 16 },
               bgcolor: 'rgba(15, 23, 42, 0.75)',
               color: '#ffffff',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               backdropFilter: 'blur(4px)',
               textTransform: 'none',
               fontWeight: 600,
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
               borderRadius: 2,
-              px: 2,
+              px: { xs: 1.5, sm: 2 },
               '&:hover': { bgcolor: 'rgba(15, 23, 42, 0.95)' }
             }}
           >
@@ -375,15 +376,15 @@ const ProfilePage = () => {
           </Button>
         </Tooltip>
 
-        <Box sx={{ width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, gap: 3, zIndex: 1 }}>
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' }, gap: 3, zIndex: 1, mt: { xs: 3, sm: 0 } }}>
           {/* Avatar with Camera Icon Badge */}
-          <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          <Box sx={{ position: 'relative', display: 'inline-block', alignSelf: { xs: 'flex-start', sm: 'center' } }}>
             <Avatar
               src={profile?.profilePhotoUrl || ''}
               sx={{
-                width: 110,
-                height: 110,
-                fontSize: '2.5rem',
+                width: { xs: 90, sm: 110 },
+                height: { xs: 90, sm: 110 },
+                fontSize: { xs: '2rem', sm: '2.5rem' },
                 bgcolor: 'primary.main',
                 border: '4px solid rgba(255,255,255,0.3)',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.3)'
@@ -414,10 +415,10 @@ const ProfilePage = () => {
           </Box>
 
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="h4" fontWeight="800" sx={{ color: '#ffffff', letterSpacing: '-0.5px' }} gutterBottom>
+            <Typography variant="h4" fontWeight="800" sx={{ color: '#ffffff', letterSpacing: '-0.5px', fontSize: { xs: '1.4rem', sm: '1.85rem', md: '2.125rem' } }} gutterBottom>
               {profile?.fullName || 'Freelancer Professional'}
             </Typography>
-            <Typography variant="subtitle1" sx={{ opacity: 0.95, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" sx={{ opacity: 0.95, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               <WorkIcon fontSize="small" sx={{ color: '#60a5fa' }} /> {profile?.profession || 'Freelancer / Software Developer'}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.8, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -430,7 +431,7 @@ const ProfilePage = () => {
             color="primary"
             startIcon={<EditIcon />}
             onClick={() => handleOpenEditModal('all')}
-            sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700 }}
+            sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 700, width: { xs: '100%', sm: 'auto' } }}
           >
             Edit Profile
           </Button>
@@ -653,9 +654,9 @@ const ProfilePage = () => {
                 <Stack spacing={2}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <WebsiteIcon color="action" />
-                    <Box>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                       <Typography variant="caption" color="text.secondary" fontWeight="600">PORTFOLIO / WEBSITE</Typography>
-                      <Typography variant="body2" fontWeight="600">
+                      <Typography variant="body2" fontWeight="600" sx={{ wordBreak: 'break-all' }}>
                         {profile?.website ? (
                           <a href={profile.website} target="_blank" rel="noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
                             {profile.website}
@@ -669,9 +670,9 @@ const ProfilePage = () => {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <LinkedInIcon color="action" />
-                    <Box>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                       <Typography variant="caption" color="text.secondary" fontWeight="600">LINKEDIN</Typography>
-                      <Typography variant="body2" fontWeight="600">
+                      <Typography variant="body2" fontWeight="600" sx={{ wordBreak: 'break-all' }}>
                         {profile?.linkedIn ? (
                           <a href={profile.linkedIn} target="_blank" rel="noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
                             {profile.linkedIn}
@@ -685,9 +686,9 @@ const ProfilePage = () => {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <GitHubIcon color="action" />
-                    <Box>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                       <Typography variant="caption" color="text.secondary" fontWeight="600">GITHUB</Typography>
-                      <Typography variant="body2" fontWeight="600">
+                      <Typography variant="body2" fontWeight="600" sx={{ wordBreak: 'break-all' }}>
                         {profile?.github ? (
                           <a href={profile.github} target="_blank" rel="noreferrer" style={{ color: '#1976d2', textDecoration: 'none' }}>
                             {profile.github}
