@@ -534,7 +534,7 @@ const ProfilePage = () => {
                 </Grid>
 
                 {/* Scannable Payment QR Preview Box */}
-                <Box sx={{ mt: 3, p: 2.5, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+                <Box sx={{ mt: 3, p: 2.5, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="subtitle2" fontWeight="700" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PaymentIcon color="primary" fontSize="small" /> Invoice Payment QR Code & Instructions
                   </Typography>

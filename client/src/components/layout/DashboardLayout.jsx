@@ -189,7 +189,7 @@ const DashboardLayout = ({ children }) => {
           borderTop: '1px solid',
           borderColor: 'divider',
           mt: 'auto',
-          bgcolor: mode === 'dark' ? 'rgba(15, 23, 42, 0.3)' : 'rgba(248, 250, 252, 0.5)',
+          bgcolor: mode === 'dark' ? 'rgba(15, 23, 42, 0.3)' : 'rgba(250, 246, 240, 0.6)',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>

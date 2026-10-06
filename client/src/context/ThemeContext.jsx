@@ -34,14 +34,14 @@ export const CustomThemeProvider = ({ children }) => {
         dark: '#1d4ed8',
       },
       background: {
-        default: mode === 'dark' ? '#0F172A' : '#F8FAFC', // Slate background colors
-        paper: mode === 'dark' ? '#1E293B' : '#FFFFFF',
+        default: mode === 'dark' ? '#0F172A' : '#FAF6F0', // Soft warm cream background
+        paper: mode === 'dark' ? '#1E293B' : '#FFFDF9',   // Warm off-white card paper
       },
       text: {
-        primary: mode === 'dark' ? '#F1F5F9' : '#0F172A',
-        secondary: mode === 'dark' ? '#94A3B8' : '#475569',
+        primary: mode === 'dark' ? '#F1F5F9' : '#1C1917',   // Warm dark stone primary text
+        secondary: mode === 'dark' ? '#94A3B8' : '#57534E', // Warm medium stone secondary text
       },
-      divider: mode === 'dark' ? '#334155' : '#E2E8F0',
+      divider: mode === 'dark' ? '#334155' : '#E8E2D6',     // Soft warm cream border
     },
     typography: {
       fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -88,7 +88,7 @@ export const CustomThemeProvider = ({ children }) => {
         styleOverrides: {
           root: {
             borderRadius: 16, // Soft rounded borders
-            border: `1px solid ${mode === 'dark' ? '#334155' : '#E2E8F0'}`,
+            border: `1px solid ${mode === 'dark' ? '#334155' : '#E8E2D6'}`,
             backgroundImage: 'none',
           },
         },

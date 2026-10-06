@@ -34,7 +34,6 @@ import {
   Payment as PaymentIcon,
   Security as SecurityIcon,
   Notifications as NotificationsIcon,
-  Palette as PreferencesIcon,
   QrCode as QrCodeIcon,
   UploadFile as UploadFileIcon,
   Delete as DeleteIcon,
@@ -341,7 +340,6 @@ const SettingsPage = () => {
           <Tab icon={<PaymentIcon />} label="Payment & Invoicing" iconPosition="start" />
           <Tab icon={<SecurityIcon />} label="Security" iconPosition="start" />
           <Tab icon={<NotificationsIcon />} label="Notifications" iconPosition="start" />
-          <Tab icon={<PreferencesIcon />} label="Preferences" iconPosition="start" />
         </Tabs>
       </Paper>
 
@@ -971,59 +969,6 @@ const SettingsPage = () => {
                 Save Notification Preferences
               </Button>
             </Box>
-          </CardContent>
-        </Card>
-      </TabPanel>
-
-      {/* 5. Preferences Tab */}
-      <TabPanel value={tabValue} index={4}>
-        <Card elevation={0} sx={{ borderRadius: 2.5, border: '1px solid', borderColor: 'divider' }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <PreferencesIcon color="primary" sx={{ mr: 1 }} />
-              <Typography variant="h6" fontWeight="700">
-                Application Preferences
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
-
-            <Grid container spacing={2.5} sx={{ maxWidth: 600 }}>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Appearance Theme</InputLabel>
-                  <Select
-                    value={formData.theme}
-                    label="Appearance Theme"
-                    onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-                  >
-                    <MenuItem value="system">System Default</MenuItem>
-                    <MenuItem value="light">Light Theme</MenuItem>
-                    <MenuItem value="dark">Dark Theme</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Date Format</InputLabel>
-                  <Select
-                    value={formData.dateFormat}
-                    label="Date Format"
-                    onChange={(e) => setFormData({ ...formData, dateFormat: e.target.value })}
-                  >
-                    <MenuItem value="DD/MM/YYYY">DD/MM/YYYY</MenuItem>
-                    <MenuItem value="MM/DD/YYYY">MM/DD/YYYY</MenuItem>
-                    <MenuItem value="YYYY-MM-DD">YYYY-MM-DD</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSaveSettings} disabled={saving}>
-                  Save Application Preferences
-                </Button>
-              </Grid>
-            </Grid>
           </CardContent>
         </Card>
       </TabPanel>

@@ -155,7 +155,7 @@ const ClientProfilePage = () => {
           borderColor: 'divider',
           background: theme.palette.mode === 'dark' 
             ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' 
-            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+            : 'linear-gradient(135deg, #FFFDF9 0%, #FAF6F0 100%)',
         }}
       >
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} alignItems="center">
