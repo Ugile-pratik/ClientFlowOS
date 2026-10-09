@@ -83,6 +83,18 @@ const getClientById = async (userId, clientId) => {
       id,
       userId,
     },
+    include: {
+      projects: {
+        include: {
+          invoices: {
+            include: {
+              payments: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
   });
 
   if (!client) {
@@ -91,7 +103,94 @@ const getClientById = async (userId, clientId) => {
     throw error;
   }
 
-  return client;
+  // Calculate real client-specific metrics and activity timeline
+  const totalProjects = client.projects.length;
+  let totalRevenue = 0;
+  let pendingPayments = 0;
+  let lastPaymentDate = null;
+  const activities = [];
+
+  // 1. Client creation activity
+  activities.push({
+    id: `client-created-${client.id}`,
+    type: 'CLIENT_CREATED',
+    title: 'Client Profile Created',
+    description: `Registered with status: ${client.status || 'Lead'}`,
+    date: client.createdAt,
+    color: 'text.secondary',
+  });
+
+  // 2. Client update activity (if updated after created)
+  if (client.updatedAt && new Date(client.updatedAt).getTime() - new Date(client.createdAt).getTime() > 60000) {
+    activities.push({
+      id: `client-updated-${client.id}`,
+      type: 'CLIENT_UPDATED',
+      title: 'Client Profile Updated',
+      description: 'Contact or address details verified and saved',
+      date: client.updatedAt,
+      color: 'info.main',
+    });
+  }
+
+  // 3. Process project, invoice, and payment activities
+  client.projects.forEach((project) => {
+    activities.push({
+      id: `project-${project.id}`,
+      type: 'PROJECT_CREATED',
+      title: `Project '${project.title}' Created`,
+      description: `Budget: ₹${(project.budget || 0).toLocaleString('en-IN')} • Status: ${project.status}`,
+      date: project.createdAt,
+      color: 'primary.main',
+    });
+
+    project.invoices.forEach((invoice) => {
+      let paidOnInvoice = 0;
+      invoice.payments.forEach((payment) => {
+        paidOnInvoice += payment.amountPaid || 0;
+        totalRevenue += payment.amountPaid || 0;
+
+        const pDate = new Date(payment.paymentDate || payment.createdAt);
+        if (!lastPaymentDate || pDate > new Date(lastPaymentDate)) {
+          lastPaymentDate = pDate;
+        }
+
+        activities.push({
+          id: `payment-${payment.id}`,
+          type: 'PAYMENT_RECEIVED',
+          title: `Payment Received (${payment.paymentMethod || 'Direct'})`,
+          description: `₹${(payment.amountPaid || 0).toLocaleString('en-IN')} recorded for Invoice #${invoice.invoiceNumber}${payment.referenceId ? ` (Ref: ${payment.referenceId})` : ''}`,
+          date: payment.paymentDate || payment.createdAt,
+          color: 'success.main',
+        });
+      });
+
+      const remainingBalance = (invoice.amount || 0) - paidOnInvoice;
+      if (remainingBalance > 0 && invoice.status !== 'Paid') {
+        pendingPayments += remainingBalance;
+      }
+
+      activities.push({
+        id: `invoice-${invoice.id}`,
+        type: 'INVOICE_CREATED',
+        title: `Invoice #${invoice.invoiceNumber} Generated`,
+        description: `Amount: ₹${(invoice.amount || 0).toLocaleString('en-IN')} • Status: ${invoice.status}`,
+        date: invoice.invoiceDate || invoice.createdAt,
+        color: 'warning.main',
+      });
+    });
+  });
+
+  // Sort activities chronologically descending (newest activity first)
+  activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return {
+    ...client,
+    totalProjects,
+    totalRevenue,
+    pendingPayments,
+    lastPaymentDate,
+    activities,
+  };
 };
 
 /**

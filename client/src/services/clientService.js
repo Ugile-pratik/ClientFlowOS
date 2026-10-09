@@ -106,7 +106,37 @@ export const getClientById = async (id) => {
     const list = getMockClients();
     const client = list.find(c => c.id === parseInt(id, 10));
     if (!client) throw new Error('Client not found.');
-    return client;
+
+    const mockActivities = [
+      {
+        id: `mock-created-${client.id}`,
+        type: 'CLIENT_CREATED',
+        title: 'Client Profile Created',
+        description: `Registered with status: ${client.status || 'Lead'}`,
+        date: client.createdAt || new Date().toISOString(),
+        color: 'text.secondary'
+      }
+    ];
+
+    if (client.updatedAt && client.updatedAt !== client.createdAt) {
+      mockActivities.unshift({
+        id: `mock-updated-${client.id}`,
+        type: 'CLIENT_UPDATED',
+        title: 'Client Profile Updated',
+        description: 'Contact and address details verified',
+        date: client.updatedAt,
+        color: 'info.main'
+      });
+    }
+
+    return {
+      ...client,
+      totalProjects: client.id === 101 ? 3 : client.id === 102 ? 2 : 0,
+      totalRevenue: client.id === 101 ? 120000 : client.id === 102 ? 85000 : 0,
+      pendingPayments: client.id === 101 ? 15000 : 0,
+      lastPaymentDate: client.id === 101 ? new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() : null,
+      activities: mockActivities
+    };
   }
   
   const response = await axios.get(`/api/clients/${id}`);

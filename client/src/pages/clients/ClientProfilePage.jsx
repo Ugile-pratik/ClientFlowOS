@@ -318,7 +318,9 @@ const ClientProfilePage = () => {
                   <ProjectIcon fontSize="small" color="action" />
                   <Typography variant="body2" color="text.secondary">Total Projects</Typography>
                 </Box>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>5</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  {client.totalProjects !== undefined ? client.totalProjects : (client.projects ? client.projects.length : 0)}
+                </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -327,7 +329,7 @@ const ClientProfilePage = () => {
                   <Typography variant="body2" color="text.secondary">Total Revenue</Typography>
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
-                  {formatCurrency(120000)}
+                  {formatCurrency(client.totalRevenue || 0)}
                 </Typography>
               </Box>
 
@@ -337,7 +339,7 @@ const ClientProfilePage = () => {
                   <Typography variant="body2" color="text.secondary">Pending Payments</Typography>
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700, color: 'error.main' }}>
-                  {formatCurrency(15000)}
+                  {formatCurrency(client.pendingPayments || 0)}
                 </Typography>
               </Box>
 
@@ -347,7 +349,9 @@ const ClientProfilePage = () => {
                   <Typography variant="body2" color="text.secondary">Last Payment</Typography>
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  Jul 15, 2026
+                  {client.lastPaymentDate
+                    ? new Date(client.lastPaymentDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : 'No payments yet'}
                 </Typography>
               </Box>
             </Stack>
@@ -359,83 +363,58 @@ const ClientProfilePage = () => {
               Recent Activity
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, position: 'relative', pl: 1 }}>
-              {/* Timeline Connector Line */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  left: 13,
-                  top: 8,
-                  bottom: 8,
-                  width: '2px',
-                  bgcolor: 'divider'
-                }}
-              />
+            {(!client.activities || client.activities.length === 0) ? (
+              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', py: 2 }}>
+                No recent activity recorded for this client.
+              </Typography>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3.5, position: 'relative', pl: 1 }}>
+                {/* Timeline Connector Line */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: 13,
+                    top: 8,
+                    bottom: 8,
+                    width: '2px',
+                    bgcolor: 'divider'
+                  }}
+                />
 
-              {/* Step 4 */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
-                <TimelineDot sx={{ fontSize: '0.8rem', color: 'success.main', zIndex: 1, mt: 0.4, border: '4px solid', borderColor: 'background.paper', borderRadius: '50%' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Payment Received
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    ₹35,000 recorded via bank transfer
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.675rem' }}>
-                    July 15, 2026
-                  </Typography>
-                </Box>
+                {client.activities.map((act) => (
+                  <Box key={act.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
+                    <TimelineDot
+                      sx={{
+                        fontSize: '0.8rem',
+                        color: act.color || 'primary.main',
+                        zIndex: 1,
+                        mt: 0.4,
+                        border: '4px solid',
+                        borderColor: 'background.paper',
+                        borderRadius: '50%'
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {act.title}
+                      </Typography>
+                      {act.description && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                          {act.description}
+                        </Typography>
+                      )}
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.675rem' }}>
+                        {new Date(act.date).toLocaleDateString('en-IN', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
               </Box>
-
-              {/* Step 3 */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
-                <TimelineDot sx={{ fontSize: '0.8rem', color: 'primary.main', zIndex: 1, mt: 0.4, border: '4px solid', borderColor: 'background.paper', borderRadius: '50%' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Invoice #INV-2026-009 Generated
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Billing amount: ₹50,000 for phase-2 design completion
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.675rem' }}>
-                    July 01, 2026
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Step 2 */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
-                <TimelineDot sx={{ fontSize: '0.8rem', color: 'info.main', zIndex: 1, mt: 0.4, border: '4px solid', borderColor: 'background.paper', borderRadius: '50%' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Profile Updated
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    GST details and office address verified
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.675rem' }}>
-                    June 12, 2026
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Step 1 */}
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
-                <TimelineDot sx={{ fontSize: '0.8rem', color: 'text.secondary', zIndex: 1, mt: 0.4, border: '4px solid', borderColor: 'background.paper', borderRadius: '50%' }} />
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    Client Created
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-                    Client record registered by {client.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.675rem' }}>
-                    {new Date(client.createdAt).toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
+            )}
           </Card>
         </Grid>
       </Grid>
